@@ -1,0 +1,10 @@
+# Instructor-only material. Lives locally and never goes in the public repo.
+instructor/
+
+# Secrets and local env files
+.env
+
+# OS / editor noise
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,59 @@
+# ┌───────────────────────────────────────────────────────────────┐
+# │  THE DAILY CONTAINER · newsroom stack                         │
+# │  Status: 🔥 ON FIRE. The last engineer left this note:        │
+# │  "It worked on my machine. Mostly. Good luck."                │
+# └───────────────────────────────────────────────────────────────┘
+name: rescue
+
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: newsroom-root
+      MYSQL_DATABASE: dailycontainer
+      MYSQL_USER: editor
+      MYSQL_PASSWORD: inkandpaper
+    volumes:
+      - db-data:/var/lib/mysql-data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "mysql-admin", "ping", "-h", "127.0.0.1", "-uroot", "-pnewsroom-root"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  wordpress:
+    image: wordpress:7.1-php8.3-apache
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_USER: editor
+      WORDPRESS_DB_PASSWORD: inkandpaper!
+      WORDPRESS_DB_NAME: dailycontainer
+    ports:
+      - "80:8080"
+    volumes:
+      - wp-data:/var/www/html
+    networks:
+      - frontend
+
+  whoami:
+    build: ../../04-build-your-own-image/whoami
+    environment:
+      MESSAGE: "Breaking news from the wire service"
+    ports:
+      - "8090:8080"
+    networks:
+      - backend
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  db-data:
+  wp-data:

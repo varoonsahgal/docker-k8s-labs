@@ -1,0 +1,2007 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Container Field Guide</title>
+<meta name="description" content="A field guide to Docker and Kubernetes for new students: every concept from the hands-on labs, explained with diagrams, analogies, traps and a crib sheet.">
+<script>try{var t=localStorage.getItem("fg-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a harbour master's manual. Dark "night port" masthead with a terminal readout, sticky chapter index on the
+   left, one reading column on the right. Each concept is an entry: term, one-line definition, explanation, then
+   optional analogy (blue), tidbit (amber), trap (red) and try-it (green) boxes. Chapters follow the order of the labs. */
+:root {
+  --paper: #F4F1EB;
+  --surface: #FFFFFF;
+  --ink: #13202B;
+  --muted: #59656F;
+  --rule: #DAD4C8;
+  --code-bg: #ECE7DD;
+  --accent: #B93D0C;          /* container orange */
+  --accent-soft: #FCE7DA;
+  --accent-ink: #7A2709;
+  --sea: #0D5C8C;             /* harbour blue, for analogies */
+  --sea-soft: #DDEBF5;
+  --sea-ink: #083E5F;
+  --amber: #8A5300;
+  --amber-soft: #FFF0D2;
+  --go: #1B7340;
+  --go-soft: #DCF2E3;
+  --stop: #B3261E;
+  --stop-soft: #FBE2DF;
+  --bar: #B93D0C;
+  --deck: #071526;            /* masthead stays dark in both themes */
+  --deck-ink: #E9F0F6;
+  --deck-muted: #9FB2C3;
+  --deck-glow: #FB923C;
+  --deck-cyan: #7DD3FC;
+  --f-display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --s-0: 0.8125rem; --s-1: 1.0625rem; --s-2: 1.1875rem; --s-3: 1.45rem; --s-4: 2.25rem; --s-5: 3.6rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0A121A; --surface: #111C26; --ink: #E4ECF2; --muted: #98A8B5; --rule: #243442;
+    --code-bg: #172633; --accent: #FF9E66; --accent-soft: #3A1E10; --accent-ink: #FFC7A6;
+    --sea: #7CC4F0; --sea-soft: #0F2C40; --sea-ink: #B9E1F8;
+    --amber: #F2B54A; --amber-soft: #352610; --go: #63C98E; --go-soft: #113021;
+    --stop: #F2877D; --stop-soft: #3A1714; --bar: #FF9E66; --deck: #050D16; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0A121A; --surface: #111C26; --ink: #E4ECF2; --muted: #98A8B5; --rule: #243442;
+  --code-bg: #172633; --accent: #FF9E66; --accent-soft: #3A1E10; --accent-ink: #FFC7A6;
+  --sea: #7CC4F0; --sea-soft: #0F2C40; --sea-ink: #B9E1F8;
+  --amber: #F2B54A; --amber-soft: #352610; --go: #63C98E; --go-soft: #113021;
+  --stop: #F2877D; --stop-soft: #3A1714; --bar: #FF9E66; --deck: #050D16; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1.25rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--f-body); font-size: var(--s-1); line-height: 1.64;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+code, kbd, pre { font-family: var(--f-mono); font-size: 0.85em; }
+code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+kbd { border: 1px solid var(--rule); border-bottom-width: 2px; background: var(--surface); padding: 0.05em 0.4em; border-radius: 4px; white-space: nowrap; }
+pre { background: var(--code-bg); padding: 0.9rem 1rem; border-radius: 6px; overflow-x: auto; line-height: 1.55; margin: 0; }
+pre code { background: none; padding: 0; overflow-wrap: normal; font-size: 1em; }
+pre .c { color: var(--muted); }
+pre .k { color: var(--accent); font-weight: 500; }
+h1, h2, h3 { text-wrap: balance; }
+strong { font-weight: 600; }
+
+/* Theme toggle */
+.theme { position: absolute; top: 14px; right: 16px; font: 500 0.75rem var(--f-mono); color: var(--deck-ink); background: transparent; border: 1px solid #2A4157; border-radius: 99px; padding: 0.3rem 0.75rem; cursor: pointer; z-index: 2; }
+.theme:hover { border-color: var(--deck-glow); color: var(--deck-glow); }
+
+/* Masthead */
+.mast { position: relative; background: var(--deck); color: var(--deck-ink); padding-inline: 16px; overflow: hidden; }
+.mast::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; }
+.mast-in { position: relative; max-width: 1180px; margin: 0 auto; padding-block: 3.25rem 3rem; display: grid; gap: 2.5rem; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: center; }
+.eyebrow { font-family: var(--f-display); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; font-size: var(--s-0); color: var(--deck-glow); }
+.mast h1 { font-family: var(--f-display); font-weight: 900; font-size: clamp(3.2rem, 9vw, 6.4rem); line-height: 0.88; letter-spacing: 0.005em; text-transform: uppercase; margin: 0.5rem 0 1.1rem; }
+.mast h1 span { color: var(--deck-glow); }
+.mast p { color: var(--deck-muted); max-width: 54ch; margin: 0; font-size: var(--s-2); line-height: 1.55; }
+.mast .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.4rem; }
+.mast .meta span { font-family: var(--f-mono); font-size: 0.75rem; color: var(--deck-ink); border: 1px solid #2A4157; border-radius: 4px; padding: 0.2rem 0.55rem; }
+.stripes { display: flex; gap: 6px; margin-top: 1.6rem; }
+.stripes i { display: block; width: 38px; height: 16px; border-radius: 2px; background: repeating-linear-gradient(90deg, rgba(0,0,0,.22) 0 2px, transparent 2px 7px); }
+
+/* Terminal readout */
+.term { background: #04101C; border: 1px solid #1D3549; border-radius: 10px; box-shadow: inset 0 0 0 4px #081A2A, 0 18px 40px rgba(0,0,0,.45); font-family: var(--f-mono); font-size: 0.76rem; color: #CFE3F0; min-width: 0; overflow: hidden; }
+.term .bar { display: flex; gap: 6px; align-items: center; padding: 0.55rem 0.8rem; border-bottom: 1px solid #16293A; color: #6F8BA3; }
+.term .bar i { width: 10px; height: 10px; border-radius: 50%; background: #2A4157; display: block; }
+.term .bar b { font-weight: 500; margin-left: 0.5rem; }
+.term .body { padding: 0.8rem 0.95rem 0.95rem; overflow-x: auto; }
+.term pre { background: none; padding: 0; color: inherit; font-size: 1em; line-height: 1.6; }
+.term .p { color: var(--deck-glow); }
+.term .h { color: #6F8BA3; }
+.term .ok { color: #7CE6A4; }
+.term .warn { color: #F6C25B; }
+.term .cy { color: var(--deck-cyan); }
+
+/* Frame */
+.frame { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 2.5rem 5rem; display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 3.5rem; }
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 1.25rem); align-self: start; max-height: calc(100vh - 2.5rem); overflow-y: auto; font-size: 0.9375rem; padding-right: 0.5rem; }
+.toc summary { list-style: none; font-family: var(--f-display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; font-size: var(--s-0); color: var(--muted); margin-bottom: 0.75rem; cursor: default; }
+.toc summary::-webkit-details-marker { display: none; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.1rem; counter-reset: ch; }
+.toc li a { display: grid; grid-template-columns: 2.1rem 1fr; padding: 0.26rem 0.5rem; border-radius: 5px; color: var(--ink); text-decoration: none; line-height: 1.35; }
+.toc li a::before { counter-increment: ch; content: counter(ch, decimal-leading-zero); font-family: var(--f-mono); font-size: 0.75rem; color: var(--muted); padding-top: 0.12rem; }
+.toc li a:hover { background: var(--code-bg); }
+.toc li a.on { background: var(--accent-soft); color: var(--accent-ink); }
+.toc li a.on::before { color: var(--accent-ink); }
+.toc .grp { font-family: var(--f-display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.74rem; color: var(--muted); padding: 0.85rem 0.5rem 0.2rem; }
+
+main { min-width: 0; }
+.part { padding-block: 0 3.5rem; }
+.part + .part { border-top: 1px solid var(--rule); padding-top: 3rem; }
+.part-h { display: grid; gap: 0.35rem; margin-bottom: 1.75rem; }
+.part-h .eyebrow { color: var(--accent); }
+.part-h h2 { font-family: var(--f-display); font-weight: 900; font-size: clamp(2.2rem, 4.8vw, var(--s-5)); line-height: 0.95; text-transform: uppercase; letter-spacing: 0.005em; margin: 0; }
+.part-h .dek { color: var(--muted); font-size: var(--s-2); max-width: 62ch; margin: 0.5rem 0 0; line-height: 1.5; }
+
+/* Part dividers */
+.divider { border-radius: 12px; background: var(--deck); color: var(--deck-ink); padding: 2rem 1.5rem; margin-bottom: 3rem; display: grid; gap: 0.4rem; position: relative; overflow: hidden; }
+.divider::after { content: ""; position: absolute; right: -10px; bottom: -6px; width: 220px; height: 70px; background:
+  linear-gradient(90deg, #F97316 0 31%, transparent 31% 34%, #14B8A6 34% 65%, transparent 65% 68%, #3B82F6 68%) top / 100% 30px no-repeat,
+  linear-gradient(90deg, transparent 0 17%, #FACC15 17% 48%, transparent 48% 51%, #A78BFA 51% 82%) bottom 4px left / 100% 30px no-repeat; opacity: .9; }
+.divider .eyebrow { color: var(--deck-glow); }
+.divider h2 { font-family: var(--f-display); font-weight: 900; text-transform: uppercase; font-size: clamp(2rem, 5vw, 3rem); line-height: 1; margin: 0; }
+.divider p { margin: 0; color: var(--deck-muted); max-width: 52ch; }
+
+/* Concept entries */
+.entry { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.7rem; padding-block: 1.6rem; border-top: 1px dashed var(--rule); max-width: 74ch; }
+.part-h + .entry, .entry.first { border-top: 0; padding-top: 0.25rem; }
+.entry-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem 0.75rem; }
+.entry h3 { font-family: var(--f-body); font-weight: 600; font-size: var(--s-3); line-height: 1.25; margin: 0; letter-spacing: -0.01em; }
+.chip { font-family: var(--f-mono); font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--rule); border-radius: 99px; padding: 0.05rem 0.55rem; white-space: nowrap; }
+.chip.lab { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
+.def { font-size: var(--s-2); line-height: 1.5; margin: 0; }
+.entry p { margin: 0; }
+.entry ul, .entry ol { margin: 0; padding-left: 1.25rem; display: grid; gap: 0.3rem; }
+
+.box { padding: 0.75rem 1rem 0.8rem; border-radius: 0 6px 6px 0; display: grid; gap: 0.35rem; }
+.box > .k { font-family: var(--f-display); font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; font-size: 0.8rem; }
+.box p { margin: 0; }
+.analogy { border-left: 3px solid var(--sea); background: var(--sea-soft); }
+.analogy > .k { color: var(--sea-ink); }
+.tidbit { border-left: 3px solid var(--amber); background: var(--amber-soft); }
+.tidbit > .k { color: var(--amber); }
+.trap { border-left: 3px solid var(--stop); background: var(--stop-soft); }
+.trap > .k { color: var(--stop); }
+.try { border-left: 3px solid var(--go); background: var(--go-soft); }
+.try > .k { color: var(--go); }
+.rule-line { font-family: var(--f-display); font-weight: 800; font-size: 1.9rem; line-height: 1.04; text-transform: uppercase; letter-spacing: 0.005em; color: var(--accent); margin: 0.25rem 0; max-width: 30ch; }
+
+/* Tables */
+.tbl { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+th, td { text-align: left; padding: 0.5rem 0.75rem 0.5rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--f-display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.82rem; color: var(--muted); }
+td code { white-space: nowrap; }
+.yes { color: var(--go); font-weight: 600; } .no { color: var(--stop); font-weight: 600; } .maybe { color: var(--amber); font-weight: 600; }
+
+/* Figures */
+figure { margin: 0.4rem 0 0.2rem; max-width: 74ch; }
+figure img { display: block; border-radius: 6px; width: 100%; height: auto; border: 1px solid var(--rule); background: var(--surface); }
+figcaption { font-size: var(--s-0); color: var(--muted); margin-top: 0.5rem; line-height: 1.5; max-width: 70ch; }
+figcaption a { color: inherit; }
+.shot img { box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; max-width: 74ch; }
+.pair figure { margin: 0; }
+.diagram { color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 1rem; overflow-x: auto; max-width: 74ch; margin: 0.4rem 0 0.2rem; }
+.diagram svg { display: block; width: 100%; height: auto; min-width: 560px; font-family: var(--f-body); }
+.diagram figcaption { margin-top: 0.75rem; }
+.d-box { fill: var(--surface); stroke: currentColor; stroke-width: 1.4; }
+.d-soft { fill: var(--code-bg); stroke: var(--rule); stroke-width: 1; }
+.d-acc { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.8; }
+.d-sea { fill: var(--sea-soft); stroke: var(--sea); stroke-width: 1.6; }
+.d-amb { fill: var(--amber-soft); stroke: var(--amber); stroke-width: 1.6; }
+.d-stop { fill: var(--stop-soft); stroke: var(--stop); stroke-width: 1.6; }
+.d-go { fill: var(--go-soft); stroke: var(--go); stroke-width: 1.6; }
+.d-frame { fill: none; stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 6 4; }
+.d-frame-acc { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-dasharray: 7 4; }
+.d-frame-sea { fill: none; stroke: var(--sea); stroke-width: 1.6; stroke-dasharray: 7 4; }
+.d-line { stroke: currentColor; stroke-width: 1.4; fill: none; }
+.d-line-acc { stroke: var(--accent); stroke-width: 2; fill: none; }
+.d-line-sea { stroke: var(--sea); stroke-width: 2; fill: none; }
+.d-line-go { stroke: var(--go); stroke-width: 2; fill: none; }
+.d-line-stop { stroke: var(--stop); stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; }
+.d-t { fill: currentColor; font-size: 13px; }
+.d-tb { fill: currentColor; font-size: 13px; font-weight: 600; }
+.d-cap { fill: var(--muted); font-size: 11.5px; }
+.d-lbl { fill: var(--muted); font-size: 11.5px; font-family: var(--f-mono); }
+.d-mono { fill: currentColor; font-size: 12px; font-family: var(--f-mono); }
+.d-h { fill: currentColor; font-family: var(--f-display); font-weight: 800; font-size: 16px; letter-spacing: 0.08em; }
+.d-acc-t { fill: var(--accent-ink); font-size: 13px; font-weight: 600; }
+.d-sea-t { fill: var(--sea-ink); font-size: 13px; font-weight: 600; }
+.d-amb-t { fill: var(--amber); font-size: 13px; font-weight: 600; }
+.d-stop-t { fill: var(--stop); font-size: 13px; font-weight: 600; }
+.d-go-t { fill: var(--go); font-size: 13px; font-weight: 600; }
+.d-head { fill: currentColor; }
+.d-head-acc { fill: var(--accent); }
+.d-head-sea { fill: var(--sea); }
+.d-head-go { fill: var(--go); }
+.d-head-stop { fill: var(--stop); }
+
+/* Anatomy strips (image names, docker run) */
+.anat { display: flex; flex-wrap: wrap; gap: 0.35rem 0.15rem; align-items: flex-start; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 1.1rem 1rem 0.9rem; max-width: 74ch; }
+.anat .seg { display: grid; gap: 0.3rem; justify-items: start; }
+.anat .seg code { font-size: 1rem; background: none; padding: 0.1rem 0.2rem; border-bottom: 3px solid var(--c, var(--accent)); border-radius: 0; white-space: nowrap; }
+.anat .seg span { font-size: 0.75rem; color: var(--muted); line-height: 1.3; max-width: 15ch; padding-left: 0.2rem; }
+.anat .seg.plain code { border-bottom-color: transparent; color: var(--muted); }
+.c1 { --c: #E8590C; } .c2 { --c: #0D5C8C; } .c3 { --c: #1B7340; } .c4 { --c: #8A5300; } .c5 { --c: #7048E8; } .c6 { --c: #B3261E; }
+
+/* Size chart */
+.sizes { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 1.1rem 1rem 0.9rem; max-width: 74ch; display: grid; gap: 0.25rem; }
+.sizes h4 { margin: 0 0 0.35rem; font-size: 0.95rem; font-weight: 600; }
+.sizes .row { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 0.75rem; align-items: center; padding: 0.3rem 0; border-radius: 4px; }
+.sizes .row:hover { background: var(--code-bg); }
+.sizes .row .n { font-size: 0.88rem; line-height: 1.3; }
+.sizes .row .n small { display: block; color: var(--muted); font-family: var(--f-mono); font-size: 0.72rem; }
+.sizes .track { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+.sizes .b { height: 14px; background: var(--bar); border-radius: 0 4px 4px 0; min-width: 3px; }
+.sizes .v { font-family: var(--f-mono); font-size: 0.8rem; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sizes .gap { height: 0.5rem; }
+.sizes .note { color: var(--muted); font-size: var(--s-0); margin-top: 0.4rem; }
+
+/* Course map */
+.mods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; max-width: 100%; }
+.mod { background: var(--surface); padding: 1rem 1.1rem 1.1rem; display: grid; gap: 0.3rem; align-content: start; position: relative; }
+.mod::before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 4px; background: var(--m, var(--accent)); }
+.mod .n { font-family: var(--f-display); font-weight: 900; font-size: 2.5rem; line-height: 1; color: var(--accent); }
+.mod .s { font-family: var(--f-display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 1.1rem; }
+.mod .t { font-family: var(--f-mono); font-size: 0.72rem; color: var(--muted); }
+.mod p { margin: 0; font-size: 0.92rem; color: var(--muted); line-height: 1.5; }
+.mod .r { font-size: 0.92rem; font-weight: 600; color: var(--ink); }
+.mod a { font-size: 0.85rem; }
+
+/* Two-column code comparison */
+.vs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.75rem; max-width: 74ch; }
+.vs > div { display: grid; gap: 0.35rem; align-content: start; min-width: 0; }
+.vs .lbl { font-family: var(--f-display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.8rem; color: var(--muted); }
+.vs pre { font-size: 0.8rem; height: 100%; }
+
+/* Copy button on commands */
+.cmd { position: relative; }
+.cmd pre { padding-right: 4.5rem; }
+.copy { position: absolute; top: 0.5rem; right: 0.5rem; font: 500 0.72rem var(--f-mono); color: var(--accent-ink); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 4px; padding: 0.2rem 0.5rem; cursor: pointer; }
+.copy:hover { background: var(--surface); }
+
+/* Glossary */
+.gloss-tools { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+.gloss-tools input { font: inherit; padding: 0.55rem 0.8rem; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); border-radius: 6px; width: min(100%, 22rem); }
+.gloss-tools output { color: var(--muted); font-size: var(--s-0); font-variant-numeric: tabular-nums; }
+.gloss { display: grid; grid-template-columns: minmax(0, 13rem) minmax(0, 1fr); margin: 0; max-width: 82ch; }
+.gloss dt, .gloss dd { padding: 0.55rem 0; border-top: 1px solid var(--rule); margin: 0; }
+.gloss dt { font-weight: 600; padding-right: 1rem; }
+.gloss dt .tag { display: inline-block; margin-left: 0.35rem; font: 500 0.62rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.05em; padding: 0 0.35rem; border-radius: 3px; vertical-align: 0.15em; }
+.gloss dt .tag.d { background: var(--sea-soft); color: var(--sea-ink); }
+.gloss dt .tag.k { background: var(--accent-soft); color: var(--accent-ink); }
+.gloss dd a { font-size: var(--s-0); white-space: nowrap; }
+.gloss-empty { color: var(--muted); }
+
+.foot { color: var(--muted); font-size: var(--s-0); border-top: 1px solid var(--rule); padding-top: 1.5rem; max-width: 82ch; }
+.foot p { margin: 0 0 0.6rem; }
+
+@media (max-width: 980px) {
+  .frame { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .toc { position: static; max-height: none; border: 1px solid var(--rule); background: var(--surface); border-radius: 8px; padding: 0.75rem 1rem; }
+  .toc summary { cursor: pointer; margin: 0; }
+  .toc summary::after { content: " ▾"; }
+  .toc[open] summary { margin-bottom: 0.6rem; }
+  .mast-in { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 680px) {
+  .mods { grid-template-columns: minmax(0, 1fr); }
+  .pair, .vs { grid-template-columns: minmax(0, 1fr); }
+  .gloss { grid-template-columns: minmax(0, 1fr); }
+  .gloss dd { border-top: 0; padding-top: 0; }
+  .sizes .row { grid-template-columns: minmax(0, 1fr); gap: 0.2rem; }
+  .divider::after { opacity: .35; }
+}
+@media print {
+  .toc, .theme, .copy, .gloss-tools { display: none !important; }
+  .frame { display: block; }
+  .mast { background: #fff; color: #000; }
+}
+</style>
+</head>
+<body>
+
+<!-- Shared arrowheads for every diagram on the page -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-head"/></marker>
+    <marker id="ah-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-head-acc"/></marker>
+    <marker id="ah-sea" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-head-sea"/></marker>
+    <marker id="ah-go" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-head-go"/></marker>
+    <marker id="ah-stop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="d-head-stop"/></marker>
+  </defs>
+</svg>
+
+<header class="mast">
+  <button class="theme" id="theme" type="button" aria-label="Toggle dark mode">◐ theme</button>
+  <div class="mast-in">
+    <div>
+      <div class="eyebrow">Companion to the Docker &amp; Kubernetes labs · October 2026</div>
+      <h1>Container <span>Field</span> Guide</h1>
+      <p>Every idea the labs touch, explained properly: what an image really is, why <code style="background:#14283A;color:#E9F0F6">localhost</code> lies to you inside a container, where your data goes when a container dies, and how Kubernetes turns "run three of these" into a promise it keeps. Keep it open beside the labs.</p>
+      <div class="meta"><span>Docker 27+</span><span>Compose v2</span><span>WordPress 7.1 · MySQL 8.4</span><span>Labs 01–05</span></div>
+      <div class="stripes" aria-hidden="true"><i style="background-color:#F97316"></i><i style="background-color:#14B8A6"></i><i style="background-color:#3B82F6"></i><i style="background-color:#FACC15"></i><i style="background-color:#A78BFA"></i><i style="background-color:#F43F5E"></i></div>
+    </div>
+    <div class="term" role="img" aria-label="A terminal: docker compose ps shows db healthy, two WordPress replicas and three whoami replicas running; kubectl get pods shows the same app as five running pods in Kubernetes.">
+      <div class="bar"><i></i><i></i><i></i><b>~/docker-k8s-labs · zsh</b></div>
+      <div class="body"><pre><span class="p">$</span> docker compose ps --format "table {{.Service}}\t{{.Status}}"
+<span class="h">SERVICE     STATUS</span>
+db          Up 2 min <span class="ok">(healthy)</span>
+wp-a        Up 2 min
+wp-b        Up 2 min
+whoami      Up 1 min <span class="ok">(healthy)</span> <span class="h">×3</span>
+
+<span class="p">$</span> kubectl get pods <span class="h"># …same app, next chapter</span>
+<span class="h">NAME                        READY  STATUS</span>
+wordpress-7c9d8-<span class="cy">x2k4q</span>      1/1    <span class="ok">Running</span>
+wordpress-7c9d8-<span class="cy">p8n1z</span>      1/1    <span class="ok">Running</span>
+whoami-5f6b7-<span class="cy">9qv2c</span>         1/1    <span class="ok">Running</span>
+whoami-5f6b7-<span class="cy">m3tt8</span>         0/1    <span class="warn">ContainerCreating</span>
+mysql-0                     1/1    <span class="ok">Running</span></pre></div>
+    </div>
+  </div>
+</header>
+
+<div class="frame">
+  <details class="toc" id="toc" open>
+    <summary>Chapters</summary>
+    <ol>
+      <li class="grp">Ground school</li>
+      <li><a href="#start">Start here</a></li>
+      <li><a href="#why">Why containers?</a></li>
+      <li><a href="#vm">Containers vs. VMs</a></li>
+      <li class="grp">Part 1 · Docker</li>
+      <li><a href="#images">Images &amp; containers</a></li>
+      <li><a href="#registry">Registries &amp; tags</a></li>
+      <li><a href="#run">Anatomy of docker run</a></li>
+      <li><a href="#ports">Port mapping</a></li>
+      <li><a href="#env">Environment variables</a></li>
+      <li><a href="#networks">Networks &amp; DNS</a></li>
+      <li><a href="#volumes">Volumes &amp; bind mounts</a></li>
+      <li><a href="#dockerfile">Dockerfiles &amp; layers</a></li>
+      <li><a href="#multistage">Multi-stage builds</a></li>
+      <li><a href="#compose">Docker Compose</a></li>
+      <li><a href="#health">Healthchecks &amp; restarts</a></li>
+      <li><a href="#hygiene">Image hygiene</a></li>
+      <li class="grp">Part 2 · Kubernetes</li>
+      <li><a href="#k8s-why">Why orchestration?</a></li>
+      <li><a href="#arch">Inside a cluster</a></li>
+      <li><a href="#desired">Desired state</a></li>
+      <li><a href="#pods">Pods</a></li>
+      <li><a href="#deployments">Deployments</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#ingress">Ingress</a></li>
+      <li><a href="#config">ConfigMaps &amp; Secrets</a></li>
+      <li><a href="#storage">Storage &amp; StatefulSets</a></li>
+      <li><a href="#probes">Probes, limits &amp; namespaces</a></li>
+      <li><a href="#translate">Compose → Kubernetes</a></li>
+      <li class="grp">Reference</li>
+      <li><a href="#trouble">Troubleshooting</a></li>
+      <li><a href="#crib">Crib sheet</a></li>
+      <li><a href="#glossary">Glossary A–Z</a></li>
+    </ol>
+  </details>
+
+<main>
+
+<!-- ============================================================ -->
+<section class="part" id="start">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 01 · Ground school</span>
+    <h2>Start here</h2>
+    <p class="dek">What you'll build across five labs, how to read this guide, and the one sentence to remember if you forget everything else.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>The one sentence</h3><span class="chip">Whole course</span></div>
+    <p class="def">A container is <strong>your app plus everything it needs to run</strong>, packed into a standard box that runs the same way on any machine with a container engine.</p>
+    <p>Everything else is detail about building the box (Dockerfiles), storing the box (registries), connecting boxes (networks), keeping the stuff that must outlive a box (volumes), and, eventually, running thousands of boxes across hundreds of machines without a human babysitting them (Kubernetes).</p>
+    <p class="rule-line">Same box. Any ship. Any port.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>The course on one screen</h3></div>
+    <p>Each lab adds one layer. Labs 01–02 are the originals, 03–04 build advanced concepts on top of them, and 05 is a hint-only challenge that uses all of it.</p>
+  </div>
+  <div class="mods" role="list">
+    <div class="mod" role="listitem" style="--m:#F97316"><span class="n">01</span><span class="s">Hello, WordPress</span><span class="t">30 min · guided</span><p>Pull an image, run it with a port mapping, run a second copy, break a port on purpose.</p><span class="r">One image, many containers.</span></div>
+    <div class="mod" role="listitem" style="--m:#14B8A6"><span class="n">02</span><span class="s">Meets MySQL</span><span class="t">40 min · challenge mode</span><p>A private network, env-var configuration, DNS by container name, and the shock of data loss.</p><span class="r">Containers find each other by name.</span></div>
+    <div class="mod" role="listitem" style="--m:#A78BFA"><span class="n">03</span><span class="s">Data that survives</span><span class="t">60 min · guided + solo</span><p>Named volumes, bind mounts, Compose, <code>.env</code>, healthchecks, restart policies.</p><span class="r">State lives outside the container.</span></div>
+    <div class="mod" role="listitem" style="--m:#FACC15"><span class="n">04</span><span class="s">Build your own</span><span class="t">75 min · guided + solo</span><p>Dockerfiles, layer caching, a 60× multi-stage diet, non-root, and two WordPress replicas.</p><span class="r">Build once, configure everywhere.</span></div>
+    <div class="mod" role="listitem" style="--m:#F43F5E"><span class="n">05</span><span class="s">Rescue mission</span><span class="t">90 min · hints only</span><p>A broken newsroom stack with six planted bugs, a staging site, scaling, and a 1.2 GB image to slim.</p><span class="r">Debug like it's 06:47 on a Monday.</span></div>
+    <div class="mod" role="listitem" style="--m:#3B82F6"><span class="n">☸</span><span class="s">Next: Kubernetes</span><span class="t">Part 2 of this guide</span><p>Pods, Deployments, Services, Ingress, ConfigMaps, volumes, and how your Compose file translates.</p><span class="r">From "run it" to "keep it running".</span></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>How to read an entry</h3></div>
+    <p>Every concept follows the same shape: a <strong>name</strong>, a <strong>one-line definition</strong> in larger type, the explanation, then up to four kinds of box:</p>
+    <div class="box analogy"><span class="k">Analogy</span><p>A picture from everyday life that makes the idea stick.</p></div>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>History, trivia or a detail that's fun to know and occasionally wins arguments.</p></div>
+    <div class="box trap"><span class="k">Trap</span><p>The mistake almost everyone makes once. Read these twice.</p></div>
+    <div class="box try"><span class="k">Try it</span><p>A one-minute experiment you can run right now to see the idea with your own eyes.</p></div>
+    <p>Chips like <span class="chip lab">Lab 03</span> tell you where the concept shows up in the labs.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="why">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 02 · Ground school</span>
+    <h2>Why containers?</h2>
+    <p class="dek">The problem is older than software: moving things between places that each do things differently.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>"It works on my machine"</h3><span class="chip">The problem</span></div>
+    <p class="def">Software depends on far more than its own code, and every machine has a slightly different "far more".</p>
+    <p>Your app needs a specific language runtime, specific library versions, OS packages, config files, environment variables and a particular file layout. Your laptop has one combination; the test server has another; production has a third. Each difference is a chance for "works here, breaks there". Before containers, teams fought this with long setup documents, configuration-management scripts and a lot of late nights.</p>
+    <p>A container image ships <strong>the app and its whole user-space environment together</strong>. The only thing it borrows from the machine it lands on is the Linux kernel. So if it runs on your laptop, the <em>same bytes</em> run in production.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>The shipping container, literally</h3><span class="chip">Analogy</span></div>
+    <figure class="shot">
+      <img src="images/terminal.jpg" width="1400" height="1002" alt="Stacks of red, blue and white shipping containers from different companies in a snowy port terminal, with gantry cranes and mountains behind" loading="lazy">
+      <figcaption>Containers from a dozen companies, one crane, one stacking system. Eimskip container terminal, Port of Reykjavík. Photo: Quintin Soloviev, <a href="https://commons.wikimedia.org/wiki/File:Eimskip_container_terminal_at_Port_of_Reykjav%C3%ADk.jpg">Wikimedia Commons</a>, CC BY 4.0.</figcaption>
+    </figure>
+    <div class="box analogy"><span class="k">Analogy</span><p>Before the 1950s, ships were loaded piece by piece: sacks, barrels and crates, each handled by hand, each needing different care. The steel shipping container fixed the <em>interface</em>, not the cargo. Every box has the same size and the same corner fittings, so any crane, ship, truck or train can move any box without knowing what's inside. Docker did the same for software: any machine with a container engine can run any image without knowing whether it's Java, Python or WordPress inside.</p></div>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>In April 1956, trucking entrepreneur Malcom McLean sent the converted tanker <em>Ideal X</em> from Newark to Houston carrying 58 containers. Loading costs reportedly fell from about $5.86 a ton to under 16 cents. Docker's whale logo carrying stacked containers is a direct nod to that story.</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>What you actually get</h3></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Benefit</th><th>What it means day to day</th><th>You see it in</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Consistency</strong></td><td>The same image runs on every laptop, CI server and cluster node.</td><td>Lab 01: WordPress with no PHP install</td></tr>
+        <tr><td><strong>Isolation</strong></td><td>Each container has its own filesystem, process list and network. Two apps can both "own" port 80.</td><td>Lab 01, Step 5</td></tr>
+        <tr><td><strong>Speed</strong></td><td>Containers start in milliseconds to seconds; there's no OS to boot.</td><td>Every <code>docker run</code></td></tr>
+        <tr><td><strong>Density</strong></td><td>Dozens of containers fit where a few VMs would.</td><td>Lab 05: seven containers on a laptop</td></tr>
+        <tr><td><strong>Disposability</strong></td><td>Delete and recreate at will, as long as data lives in volumes.</td><td>Lab 03: the murder test</td></tr>
+        <tr><td><strong>Declarative setup</strong></td><td>The whole environment is a file in Git that can be reviewed.</td><td>Lab 03: <code>compose.yaml</code></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="vm">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 03 · Ground school</span>
+    <h2>Containers vs. VMs</h2>
+    <p class="dek">Both isolate workloads. They draw the line at different floors of the building.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Where the line is drawn</h3><span class="chip">Core idea</span></div>
+    <p class="def">A virtual machine virtualises the <strong>hardware</strong> and runs a whole guest OS. A container virtualises the <strong>operating system</strong> and shares the host's kernel.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 300" role="img" aria-labelledby="vm-t">
+        <title id="vm-t">Virtual machines stack three guest operating systems on a hypervisor; containers share one host kernel and only package their own libraries and app, so their towers are shorter.</title>
+        <text x="20" y="26" class="d-h">VIRTUAL MACHINES</text>
+        <text x="380" y="26" class="d-h">CONTAINERS</text>
+        <!-- VMs -->
+        <g>
+          <rect x="20" y="40" width="100" height="34" rx="4" class="d-acc"/><text x="70" y="62" text-anchor="middle" class="d-acc-t">App A</text>
+          <rect x="130" y="40" width="100" height="34" rx="4" class="d-acc"/><text x="180" y="62" text-anchor="middle" class="d-acc-t">App B</text>
+          <rect x="240" y="40" width="100" height="34" rx="4" class="d-acc"/><text x="290" y="62" text-anchor="middle" class="d-acc-t">App C</text>
+          <rect x="20" y="80" width="100" height="34" rx="4" class="d-soft"/><text x="70" y="102" text-anchor="middle" class="d-t">Bins / libs</text>
+          <rect x="130" y="80" width="100" height="34" rx="4" class="d-soft"/><text x="180" y="102" text-anchor="middle" class="d-t">Bins / libs</text>
+          <rect x="240" y="80" width="100" height="34" rx="4" class="d-soft"/><text x="290" y="102" text-anchor="middle" class="d-t">Bins / libs</text>
+          <rect x="20" y="120" width="100" height="46" rx="4" class="d-amb"/><text x="70" y="140" text-anchor="middle" class="d-amb-t">Guest OS</text><text x="70" y="156" text-anchor="middle" class="d-cap">+ its own kernel</text>
+          <rect x="130" y="120" width="100" height="46" rx="4" class="d-amb"/><text x="180" y="140" text-anchor="middle" class="d-amb-t">Guest OS</text><text x="180" y="156" text-anchor="middle" class="d-cap">+ its own kernel</text>
+          <rect x="240" y="120" width="100" height="46" rx="4" class="d-amb"/><text x="290" y="140" text-anchor="middle" class="d-amb-t">Guest OS</text><text x="290" y="156" text-anchor="middle" class="d-cap">+ its own kernel</text>
+          <rect x="20" y="174" width="320" height="32" rx="4" class="d-box"/><text x="180" y="195" text-anchor="middle" class="d-tb">Hypervisor</text>
+          <rect x="20" y="212" width="320" height="32" rx="4" class="d-box"/><text x="180" y="233" text-anchor="middle" class="d-t">Host operating system</text>
+          <rect x="20" y="250" width="320" height="32" rx="4" class="d-soft"/><text x="180" y="271" text-anchor="middle" class="d-t">Hardware</text>
+        </g>
+        <!-- Containers -->
+        <g>
+          <rect x="380" y="98" width="100" height="34" rx="4" class="d-acc"/><text x="430" y="120" text-anchor="middle" class="d-acc-t">App A</text>
+          <rect x="490" y="98" width="100" height="34" rx="4" class="d-acc"/><text x="540" y="120" text-anchor="middle" class="d-acc-t">App B</text>
+          <rect x="600" y="98" width="100" height="34" rx="4" class="d-acc"/><text x="650" y="120" text-anchor="middle" class="d-acc-t">App C</text>
+          <rect x="380" y="138" width="100" height="30" rx="4" class="d-soft"/><text x="430" y="158" text-anchor="middle" class="d-t">Bins / libs</text>
+          <rect x="490" y="138" width="100" height="30" rx="4" class="d-soft"/><text x="540" y="158" text-anchor="middle" class="d-t">Bins / libs</text>
+          <rect x="600" y="138" width="100" height="30" rx="4" class="d-soft"/><text x="650" y="158" text-anchor="middle" class="d-t">Bins / libs</text>
+          <rect x="380" y="174" width="320" height="32" rx="4" class="d-sea"/><text x="540" y="195" text-anchor="middle" class="d-sea-t">Container engine (Docker)</text>
+          <rect x="380" y="212" width="320" height="32" rx="4" class="d-box"/><text x="540" y="233" text-anchor="middle" class="d-t"><tspan class="d-tb">One shared Linux kernel</tspan> · host OS</text>
+          <rect x="380" y="250" width="320" height="32" rx="4" class="d-soft"/><text x="540" y="271" text-anchor="middle" class="d-t">Hardware</text>
+        </g>
+        <text x="380" y="60" class="d-cap">No guest OS → megabytes, not gigabytes;</text>
+        <text x="380" y="76" class="d-cap">starts in milliseconds, not minutes.</text>
+      </svg>
+      <figcaption>Each VM carries a full guest OS (amber). Containers skip that floor entirely and share the host's kernel, which is why they're smaller and start almost instantly.</figcaption>
+    </figure>
+    <div class="tbl"><table>
+      <thead><tr><th></th><th>Virtual machine</th><th>Container</th></tr></thead>
+      <tbody>
+        <tr><td>Typical size</td><td>Gigabytes</td><td>Megabytes (our <code>whoami</code>: 5.4 MB)</td></tr>
+        <tr><td>Start time</td><td>Tens of seconds to minutes</td><td>Milliseconds to seconds</td></tr>
+        <tr><td>Kernel</td><td>Its own</td><td>Shared with the host</td></tr>
+        <tr><td>Isolation strength</td><td class="yes">Very strong (hardware boundary)</td><td class="maybe">Strong, but shares a kernel</td></tr>
+        <tr><td>Can run a different OS?</td><td class="yes">Yes (Windows on Linux, etc.)</td><td class="no">Linux containers need a Linux kernel</td></tr>
+      </tbody>
+    </table></div>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>So how does Docker run Linux containers on your Mac or Windows laptop? <strong>Docker Desktop quietly runs one small Linux VM</strong> and puts all your containers inside it. That's why <code>cat /etc/os-release</code> inside a WordPress container says Debian even on a MacBook (Lab 01, Step 7). In the cloud, it's common to run containers <em>inside</em> VMs. The two technologies are partners, not rivals.</p></div>
+    <div class="box analogy"><span class="k">Analogy</span><p>VMs are <strong>detached houses</strong>: each has its own foundation, plumbing and wiring. Containers are <strong>apartments</strong> in one building: private front doors and furniture, but shared foundations and water mains. You can build apartments much faster, and fit far more of them on the same land.</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>The Linux magic underneath</h3><span class="chip">Deeper</span></div>
+    <p>A container isn't a single kernel feature. It's an ordinary Linux process wrapped in several of them:</p>
+    <ul>
+      <li><strong>Namespaces</strong> control what a process can <em>see</em>: its own process list (PID 1 is your app), its own network interfaces and ports, its own hostname, its own filesystem root.</li>
+      <li><strong>cgroups</strong> (control groups) control what it can <em>use</em>: CPU share, memory limit, I/O.</li>
+      <li><strong>Union filesystems</strong> (overlayfs) stack read-only image layers with one thin writable layer on top.</li>
+    </ul>
+    <div class="box try"><span class="k">Try it</span><p>Run <code>docker run --rm alpine ps aux</code>. You'll see exactly one process (<code>ps</code> itself) as PID 1. The container can't see anything else running on your machine. That's the PID namespace at work.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<div class="divider" id="part-docker">
+  <span class="eyebrow">Part 1 · Labs 01–05</span>
+  <h2>Docker</h2>
+  <p>Images, containers, ports, networks, volumes, Dockerfiles and Compose. Everything you need to build, run and connect containers on one machine.</p>
+</div>
+
+<!-- ============================================================ -->
+<section class="part" id="images">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 04 · Docker</span>
+    <h2>Images &amp; containers</h2>
+    <p class="dek">The two words people mix up most. Get this pair straight and half of Docker falls into place.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Image</h3><span class="chip lab">Lab 01</span></div>
+    <p class="def">A read-only, layered template: a filesystem snapshot plus metadata saying how to start it.</p>
+    <p>An image contains everything the app needs (binaries, libraries, config defaults, the app itself) and instructions like "listen on port 80" and "run <code>apache2-foreground</code> when started". It never changes once built. A new version is a new image.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Container</h3><span class="chip lab">Lab 01</span></div>
+    <p class="def">A running (or stopped) instance of an image: the image's layers plus a thin writable layer, an isolated process, and its own network identity.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 220" role="img" aria-labelledby="ic-t">
+        <title id="ic-t">docker pull copies the wordpress image from Docker Hub to your laptop; docker run creates three independent containers from that one image on ports 8080, 8081 and 8082.</title>
+        <rect x="20" y="78" width="140" height="64" rx="32" class="d-sea"/>
+        <text x="90" y="106" text-anchor="middle" class="d-sea-t">Docker Hub</text>
+        <text x="90" y="124" text-anchor="middle" class="d-lbl">wordpress</text>
+        <path d="M160 110 H 222" class="d-line" marker-end="url(#ah)"/>
+        <text x="191" y="100" text-anchor="middle" class="d-lbl">pull</text>
+        <rect x="228" y="60" width="150" height="100" rx="6" class="d-box"/>
+        <rect x="240" y="72" width="126" height="18" rx="3" class="d-soft"/><text x="303" y="85" text-anchor="middle" class="d-cap">apache + php</text>
+        <rect x="240" y="94" width="126" height="18" rx="3" class="d-soft"/><text x="303" y="107" text-anchor="middle" class="d-cap">wordpress files</text>
+        <rect x="240" y="116" width="126" height="18" rx="3" class="d-soft"/><text x="303" y="129" text-anchor="middle" class="d-cap">debian base</text>
+        <text x="303" y="152" text-anchor="middle" class="d-tb">Image (read-only)</text>
+        <path d="M378 96 C 420 60, 430 45, 468 45" class="d-line-acc" marker-end="url(#ah-acc)"/>
+        <path d="M378 110 H 468" class="d-line-acc" marker-end="url(#ah-acc)"/>
+        <path d="M378 124 C 420 160, 430 175, 468 175" class="d-line-acc" marker-end="url(#ah-acc)"/>
+        <text x="420" y="104" text-anchor="middle" class="d-lbl">run</text>
+        <rect x="474" y="22" width="226" height="46" rx="6" class="d-acc"/><text x="490" y="42" class="d-acc-t">Container wp1</text><text x="490" y="59" class="d-lbl">localhost:8080 · own writable layer</text>
+        <rect x="474" y="87" width="226" height="46" rx="6" class="d-acc"/><text x="490" y="107" class="d-acc-t">Container wp2</text><text x="490" y="124" class="d-lbl">localhost:8081 · own writable layer</text>
+        <rect x="474" y="152" width="226" height="46" rx="6" class="d-acc"/><text x="490" y="172" class="d-acc-t">Container wp3</text><text x="490" y="189" class="d-lbl">localhost:8082 · own writable layer</text>
+      </svg>
+      <figcaption>One image, many containers. Each container shares the image's read-only layers (stored once on disk) and gets its own private writable layer on top.</figcaption>
+    </figure>
+    <div class="box analogy"><span class="k">Analogy</span><p>An image is a <strong>recipe card</strong>; a container is a <strong>dish cooked from it</strong>. You can cook the same recipe ten times for ten tables. Spilling sauce on one plate doesn't touch the recipe or the other plates. Programmers: an image is a <em>class</em>, a container is an <em>object</em>.</p></div>
+    <div class="box trap"><span class="k">Trap</span><p>"I deleted the container, so the image is gone." No: <code>docker rm</code> deletes a container, <code>docker rmi</code> deletes an image, and Docker won't remove an image while any container (even a stopped one) still uses it.</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Layers</h3><span class="chip lab">Lab 01</span><span class="chip lab">Lab 04</span></div>
+    <p class="def">An image is a stack of filesystem diffs. Each layer records only what changed relative to the one below.</p>
+    <p>That's why <code>docker pull</code> prints several lines that complete independently, and why the second image you pull with the same base downloads in a flash: layers are identified by a content hash and stored once, no matter how many images share them. When a container writes a file, it's copied up into the container's own writable layer (<em>copy-on-write</em>). The image never changes.</p>
+    <div class="box try"><span class="k">Try it</span><p><code>docker history wordpress</code> lists every layer, the instruction that made it, and its size. <code>docker system df</code> shows how much disk images, containers and volumes use in total.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="registry">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 05 · Docker</span>
+    <h2>Registries &amp; tags</h2>
+    <p class="dek">Where images live, how they're named, and why "latest" is the most dangerous word in this guide.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Registry</h3><span class="chip lab">Lab 01</span><span class="chip lab">Lab 04</span></div>
+    <p class="def">A server that stores and distributes images: the "app store" your engine pulls from and pushes to.</p>
+    <p><strong>Docker Hub</strong> (<code>docker.io</code>) is the default. Others include GitHub Container Registry (<code>ghcr.io</code>), Amazon ECR, Google Artifact Registry, Azure Container Registry, and self-hosted options like Harbor. Companies usually run a private registry so their images (and secrets baked into them by accident) aren't public.</p>
+    <p><strong>Docker Official Images</strong> live under the special <code>library/</code> namespace, shown as <code>_</code> in URLs like <code>hub.docker.com/_/wordpress</code>. They're curated, documented, rebuilt for security patches and published for multiple CPU architectures. Prefer them to random uploads with similar names.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Anatomy of an image name</h3><span class="chip">Reference</span></div>
+    <div class="anat" role="img" aria-label="ghcr.io slash acme slash whoami colon v2, broken into registry, namespace, repository and tag; an optional at-sha256 digest pins exact bytes.">
+      <div class="seg c2"><code>ghcr.io</code><span>registry · default <code>docker.io</code></span></div>
+      <div class="seg plain"><code>/</code></div>
+      <div class="seg c3"><code>acme</code><span>namespace · user or org (<code>library</code> for official)</span></div>
+      <div class="seg plain"><code>/</code></div>
+      <div class="seg c1"><code>whoami</code><span>repository</span></div>
+      <div class="seg plain"><code>:</code></div>
+      <div class="seg c4"><code>v2</code><span>tag · default <code>latest</code></span></div>
+      <div class="seg c5"><code>@sha256:9f86d0…</code><span>digest · optional, exact bytes</span></div>
+    </div>
+    <p>So plain <code>wordpress</code> is really <code>docker.io/library/wordpress:latest</code>. The lab's <code>wordpress:7.1-php8.3-apache</code> pins WordPress 7.1, PHP 8.3, served by Apache.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Tags vs. digests</h3><span class="chip lab">Lab 03</span></div>
+    <p class="def">A tag is a human-friendly <em>label that can move</em>. A digest is a hash of the image's contents that <em>can never change</em>.</p>
+    <div class="box trap"><span class="k">Trap</span><p><strong><code>latest</code> doesn't mean newest, and it doesn't mean stable.</strong> It's just the tag you get when you don't specify one, and maintainers repoint it whenever they like. In October 2026, <code>mysql:latest</code> was MySQL 26.7. A database volume created by one major version may refuse to start under another. That's why Lab 03 switches to <code>mysql:8.4</code>, MySQL's long-term-support line.</p></div>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>Tags pin <em>intent</em>; digests pin <em>bytes</em>. Production teams often deploy with both (<code>mysql:8.4@sha256:…</code>), so a reader sees the version and the engine guarantees exactly the same image every time. Tools like Renovate or Dependabot then open pull requests when a new digest appears.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="run">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 06 · Docker</span>
+    <h2>Anatomy of docker run</h2>
+    <p class="dek">The one command you'll type more than any other, decoded flag by flag, plus the life story of every container.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Every flag, explained</h3><span class="chip lab">Lab 01</span><span class="chip lab">Lab 02</span></div>
+    <div class="anat" role="img" aria-label="docker run -d --name wordpress -p 8081:80 -e WORDPRESS_DB_HOST=wp-mysql --net my-wp -v wp-data:/var/www/html wordpress:7.1, with each flag labelled.">
+      <div class="seg plain"><code>docker run</code><span>create + start</span></div>
+      <div class="seg c3"><code>-d</code><span>detached: run in background</span></div>
+      <div class="seg c2"><code>--name wordpress</code><span>friendly name; also its DNS name</span></div>
+      <div class="seg c1"><code>-p 8081:80</code><span>host port : container port</span></div>
+      <div class="seg c5"><code>-e WORDPRESS_DB_HOST=wp-mysql</code><span>environment variable (config)</span></div>
+      <div class="seg c4"><code>--net my-wp</code><span>join a network</span></div>
+      <div class="seg c6"><code>-v wp-data:/var/www/html</code><span>volume : path inside</span></div>
+      <div class="seg c1"><code>wordpress:7.1</code><span>the image (always last, before any command)</span></div>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Flag</th><th>Meaning</th><th>Handy variant</th></tr></thead>
+      <tbody>
+        <tr><td><code>-it</code></td><td>Interactive + a terminal: for shells and REPLs</td><td><code>docker run -it --rm alpine sh</code></td></tr>
+        <tr><td><code>--rm</code></td><td>Delete the container automatically when it exits</td><td>Perfect for one-off commands</td></tr>
+        <tr><td><code>--restart</code></td><td>Restart policy (see <a href="#health">Healthchecks &amp; restarts</a>)</td><td><code>--restart unless-stopped</code></td></tr>
+        <tr><td><code>--user</code></td><td>Run as a specific UID:GID</td><td><code>--user 1000:1000</code></td></tr>
+        <tr><td><code>--memory</code> / <code>--cpus</code></td><td>Resource limits (cgroups)</td><td><code>--memory 512m --cpus 1.5</code></td></tr>
+        <tr><td><code>--env-file</code></td><td>Load many <code>-e</code> vars from a file</td><td><code>--env-file .env</code></td></tr>
+      </tbody>
+    </table></div>
+    <div class="box trap"><span class="k">Trap</span><p>Order matters: <strong>flags go before the image name</strong>. Anything after the image is passed to the container as its command. <code>docker run wordpress -p 8080:80</code> doesn't map a port. It tries to run a program called <code>-p</code>.</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>The container lifecycle</h3><span class="chip lab">Lab 01</span></div>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 210" role="img" aria-labelledby="lc-t">
+        <title id="lc-t">Container states: created, then running via start; running can be paused and unpaused; stop, kill or a crash moves running to exited; start or restart returns exited to running; rm removes an exited container.</title>
+        <rect x="20" y="84" width="112" height="44" rx="22" class="d-soft"/><text x="76" y="111" text-anchor="middle" class="d-tb">Created</text>
+        <rect x="228" y="84" width="112" height="44" rx="22" class="d-go"/><text x="284" y="111" text-anchor="middle" class="d-go-t">Running</text>
+        <rect x="228" y="10" width="112" height="40" rx="20" class="d-amb"/><text x="284" y="35" text-anchor="middle" class="d-amb-t">Paused</text>
+        <rect x="436" y="84" width="112" height="44" rx="22" class="d-stop"/><text x="492" y="105" text-anchor="middle" class="d-stop-t">Exited</text><text x="492" y="120" text-anchor="middle" class="d-cap">(stopped)</text>
+        <rect x="608" y="84" width="96" height="44" rx="6" class="d-box" style="stroke-dasharray:5 4"/><text x="656" y="111" text-anchor="middle" class="d-t">Removed</text>
+        <path d="M132 106 H 222" class="d-line" marker-end="url(#ah)"/><text x="177" y="98" text-anchor="middle" class="d-lbl">start</text>
+        <path d="M270 84 V 56" class="d-line" marker-end="url(#ah)"/><path d="M298 50 V 78" class="d-line" marker-end="url(#ah)"/>
+        <text x="262" y="72" text-anchor="end" class="d-lbl">pause</text><text x="306" y="72" class="d-lbl">unpause</text>
+        <path d="M340 100 H 430" class="d-line-stop" marker-end="url(#ah-stop)"/><text x="385" y="76" text-anchor="middle" class="d-lbl">stop · kill · crash</text>
+        <path d="M480 128 C 460 175, 320 175, 296 134" class="d-line-go" marker-end="url(#ah-go)"/><text x="388" y="178" text-anchor="middle" class="d-lbl">start · restart policy</text>
+        <path d="M548 106 H 602" class="d-line" marker-end="url(#ah)"/><text x="575" y="98" text-anchor="middle" class="d-lbl">rm</text>
+        <text x="20" y="160" class="d-cap"><tspan class="d-mono" style="font-size:11.5px">docker run</tspan> = create + start</text>
+        <text x="20" y="178" class="d-cap">a port clash leaves you stuck in Created</text>
+      </svg>
+      <figcaption>A stopped container still exists, with its writable layer intact, until you <code>rm</code> it. <code>docker ps</code> shows running containers; <code>docker ps -a</code> shows them all.</figcaption>
+    </figure>
+    <div class="box tidbit"><span class="k">Tidbit</span><p><code>docker stop</code> sends <code>SIGTERM</code>, waits 10 seconds for a graceful shutdown, then sends <code>SIGKILL</code>. If your container always takes exactly 10 seconds to stop, your app probably isn't receiving the signal, often because <code>CMD</code> uses shell form and <code>/bin/sh</code> is PID 1. Lab 05's boss level fixes exactly that with exec form.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="ports">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 07 · Docker</span>
+    <h2>Port mapping</h2>
+    <p class="dek">How traffic gets from your browser into a container that lives on its own private network.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3><code>-p HOST:CONTAINER</code></h3><span class="chip lab">Lab 01</span></div>
+    <p class="def">Publishing a port opens a door on your machine and forwards everything that arrives to a port inside a container.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 210" role="img" aria-labelledby="pm-t">
+        <title id="pm-t">Your browser connects to localhost 8080 and 8081 on your laptop; -p 8080:80 forwards to port 80 of container wp1 and -p 8081:80 forwards to port 80 of container wp2.</title>
+        <rect x="10" y="10" width="700" height="190" rx="10" class="d-frame"/>
+        <text x="26" y="32" class="d-h">YOUR LAPTOP (HOST)</text>
+        <rect x="30" y="80" width="150" height="62" rx="6" class="d-box"/><text x="105" y="106" text-anchor="middle" class="d-tb">Browser</text><text x="105" y="125" text-anchor="middle" class="d-lbl">localhost:8080/8081</text>
+        <rect x="262" y="58" width="82" height="34" rx="17" class="d-acc"/><text x="303" y="80" text-anchor="middle" class="d-acc-t">:8080</text>
+        <rect x="262" y="132" width="82" height="34" rx="17" class="d-acc"/><text x="303" y="154" text-anchor="middle" class="d-acc-t">:8081</text>
+        <path d="M180 100 C 220 90, 230 76, 256 75" class="d-line" marker-end="url(#ah)"/>
+        <path d="M180 122 C 220 132, 230 148, 256 149" class="d-line" marker-end="url(#ah)"/>
+        <rect x="440" y="44" width="250" height="62" rx="6" class="d-sea"/><text x="456" y="68" class="d-sea-t">wp1 container</text><text x="456" y="88" class="d-lbl">Apache listening on :80</text>
+        <rect x="440" y="118" width="250" height="62" rx="6" class="d-sea"/><text x="456" y="142" class="d-sea-t">wp2 container</text><text x="456" y="162" class="d-lbl">Apache listening on :80</text>
+        <path d="M344 75 H 434" class="d-line-acc" marker-end="url(#ah-acc)"/><text x="389" y="67" text-anchor="middle" class="d-lbl">-p 8080:80</text>
+        <path d="M344 149 H 434" class="d-line-acc" marker-end="url(#ah-acc)"/><text x="389" y="141" text-anchor="middle" class="d-lbl">-p 8081:80</text>
+      </svg>
+      <figcaption>Both containers use port 80 internally without clashing, because each has its own network namespace. Host ports must be unique, because your laptop has only one.</figcaption>
+    </figure>
+    <div class="box analogy"><span class="k">Analogy</span><p>An office building with one street address (your laptop) and many companies inside (containers). Every company has a "reception desk 80" of its own. The building's mailroom (<code>-p</code>) knows that letters for <em>suite 8080</em> go to company A's reception and <em>suite 8081</em> to company B's.</p></div>
+    <div class="box trap"><span class="k">Trap</span><p><strong>The left number is always your machine.</strong> <code>-p 80:8080</code> means "my port 80 → container port 8080", which fails silently if nothing in the container listens on 8080. That exact bug is planted in Lab 05.</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>"Port is already allocated"</h3><span class="chip lab">Lab 01</span><span class="chip lab">Lab 05</span></div>
+    <p>Two containers can't publish the same host port. Docker <em>creates</em> the second container but can't <em>start</em> it, leaving it in the <code>Created</code> state. Fix: pick a different host port, or stop whatever holds it (<code>docker ps</code>, or <code>lsof -i :8080</code> on macOS/Linux).</p>
+    <p>This is also why you can't <code>--scale</code> a Compose service with a fixed host port to three replicas (Lab 05, Mission 4). Kubernetes avoids the problem entirely: pods are reached through a <a href="#services">Service</a>, not through host ports.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>The <code>127.0.0.1</code> trap</h3><span class="chip lab">Lab 05</span></div>
+    <p class="def">An app that listens only on <code>127.0.0.1</code> inside a container can't be reached through a port mapping, because forwarded traffic arrives on the container's network interface, not its loopback.</p>
+    <p>The symptom is maddening: <code>curl localhost:5000</code> from your laptop gets <em>"Empty reply from server"</em>, yet <code>docker exec … curl localhost:5000</code> inside the container works perfectly. The fix is to bind to <code>0.0.0.0</code> ("all interfaces"). Many dev servers (Flask, Vite, Rails) default to localhost for safety, so this bites everyone once.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="env">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 08 · Docker</span>
+    <h2>Environment variables</h2>
+    <p class="dek">The universal configuration knob for containers, and the reason one image can serve dev, test and production.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3><code>-e KEY=value</code></h3><span class="chip lab">Lab 02</span></div>
+    <p class="def">Images read their configuration from environment variables, so you change behaviour at run time without rebuilding.</p>
+    <p>Each image documents the variables it understands. <code>mysql</code> creates a database and user from <code>MYSQL_DATABASE</code>, <code>MYSQL_USER</code> and <code>MYSQL_PASSWORD</code>; <code>wordpress</code> writes its <code>wp-config.php</code> from <code>WORDPRESS_DB_*</code>. In Lab 02, setting those four variables is what makes WordPress <em>skip</em> this screen entirely:</p>
+    <figure class="shot">
+      <img src="images/wp-needs-db.png" width="1100" height="760" alt="WordPress setup form asking for database name, username, password, database host (defaulting to localhost) and table prefix" loading="lazy">
+      <figcaption>Without <code>WORDPRESS_DB_*</code> variables (Lab 01), WordPress asks for database details. Note the default host is <code>localhost</code>, which inside a container is wrong. See <a href="#networks">Networks &amp; DNS</a>.</figcaption>
+    </figure>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>This is principle III of the <strong>Twelve-Factor App</strong> manifesto (2011): <em>"Store config in the environment."</em> The same build artifact moves through every environment; only the variables change. Kubernetes builds on it with ConfigMaps and Secrets, which become environment variables in your pods.</p></div>
+    <div class="box trap"><span class="k">Trap</span><p><strong>Initialisation variables only run once.</strong> <code>MYSQL_PASSWORD</code> and friends are applied the first time MySQL starts with an <em>empty</em> data directory. Change them later and nothing happens to an existing volume, but WordPress picks up the new password and can no longer log in. (Lab 03, Part 5.)</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3><code>ARG</code> vs. <code>ENV</code></h3><span class="chip lab">Lab 04</span></div>
+    <div class="tbl"><table>
+      <thead><tr><th></th><th><code>ARG</code></th><th><code>ENV</code> / <code>-e</code></th></tr></thead>
+      <tbody>
+        <tr><td>Exists during</td><td>Build only</td><td>Build <em>and</em> run time</td></tr>
+        <tr><td>Set with</td><td><code>docker build --build-arg VERSION=v2</code></td><td>Dockerfile <code>ENV</code>, or <code>docker run -e</code></td></tr>
+        <tr><td>Good for</td><td>Versions, build flags</td><td>Messages, URLs, feature flags, credentials (via secrets)</td></tr>
+        <tr><td>In Lab 04</td><td>Stamps <code>version : v2</code> into the binary</td><td><code>MESSAGE</code> changes the greeting with no rebuild</td></tr>
+      </tbody>
+    </table></div>
+    <div class="box trap"><span class="k">Trap</span><p>Never bake real secrets into an image with <code>ARG</code> or <code>ENV</code>: they're readable by anyone with the image via <code>docker history</code> or <code>docker inspect</code>. Pass secrets at run time, or use BuildKit's <code>--secret</code> mounts for build-time credentials.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="networks">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 09 · Docker</span>
+    <h2>Networks &amp; DNS</h2>
+    <p class="dek">How containers find each other, and why <code>localhost</code> is the most misleading word in container land.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>User-defined networks</h3><span class="chip lab">Lab 02</span></div>
+    <p class="def">A network you create gives its containers private connectivity <em>and</em> a built-in DNS server that resolves container names to IPs.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 270" role="img" aria-labelledby="net-t">
+        <title id="net-t">Inside the my-wp network, the wordpress container reaches wp-mysql by name on port 3306 using Docker's built-in DNS. The browser reaches wordpress through -p 8081:80. A container on the default network cannot resolve wp-mysql.</title>
+        <rect x="200" y="14" width="506" height="186" rx="10" class="d-frame-acc"/>
+        <text x="216" y="36" class="d-h" style="fill:var(--accent)">NETWORK · my-wp</text>
+        <rect x="430" y="24" width="262" height="30" rx="15" class="d-amb"/><text x="561" y="44" text-anchor="middle" class="d-lbl" style="fill:var(--amber)">DNS: wp-mysql → 172.18.0.2</text>
+        <rect x="224" y="90" width="180" height="70" rx="6" class="d-sea"/><text x="240" y="116" class="d-sea-t">wordpress</text><text x="240" y="136" class="d-lbl">172.18.0.3 · :80</text>
+        <rect x="508" y="90" width="180" height="70" rx="6" class="d-sea"/><text x="524" y="116" class="d-sea-t">wp-mysql</text><text x="524" y="136" class="d-lbl">172.18.0.2 · :3306</text>
+        <path d="M404 125 H 502" class="d-line-acc" marker-end="url(#ah-acc)"/><text x="453" y="116" text-anchor="middle" class="d-lbl">wp-mysql:3306</text>
+        <rect x="14" y="90" width="100" height="70" rx="6" class="d-box"/><text x="64" y="120" text-anchor="middle" class="d-tb">Browser</text><text x="64" y="139" text-anchor="middle" class="d-lbl">:8081</text>
+        <path d="M114 125 H 218" class="d-line" marker-end="url(#ah)"/><text x="157" y="116" text-anchor="middle" class="d-lbl">-p 8081:80</text>
+        <rect x="224" y="214" width="200" height="46" rx="6" class="d-box" style="stroke-dasharray:5 4"/><text x="240" y="234" class="d-t">stranger container</text><text x="240" y="250" class="d-lbl">default bridge network</text>
+        <path d="M424 236 C 520 236, 560 200, 590 166" class="d-line-stop" marker-end="url(#ah-stop)"/>
+        <text x="530" y="246" class="d-stop-t" style="font-size:12px">✕ can't resolve wp-mysql</text>
+      </svg>
+      <figcaption>Only WordPress is published to your laptop. MySQL has no <code>-p</code>, so it's reachable only by containers on <code>my-wp</code>, which is exactly what you want for a database.</figcaption>
+    </figure>
+    <div class="box trap"><span class="k">Trap</span><p><strong>Inside a container, <code>localhost</code> means <em>that container</em>.</strong> Not your laptop, and not the database container next door. WordPress's default DB host of <code>localhost</code> fails because MySQL isn't running inside the WordPress container. Use the other container's <em>name</em>.</p></div>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>Docker's built-in <code>bridge</code> network (where containers land if you don't pick one) does <em>not</em> provide name resolution, only IPs. That's a historical leftover; Docker recommends user-defined networks for everything. Compose creates one per project automatically, which is why services find each other by service name without you doing anything.</p></div>
+    <figure class="shot">
+      <img src="images/wp-db-error.png" width="1000" height="230" alt="WordPress page reading 'Error establishing a database connection'" loading="lazy">
+      <figcaption>The most common screen in Labs 02–05. It means one of four things: wrong host name, not on the same network, wrong credentials, or MySQL still booting (wait 20 seconds).</figcaption>
+    </figure>
+    <div class="box try"><span class="k">Try it</span><p><code>docker exec wordpress getent hosts wp-mysql</code> shows the IP Docker's DNS hands out. Then <code>docker network inspect my-wp</code> lists every container on the network with its address.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="volumes">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 10 · Docker</span>
+    <h2>Volumes &amp; bind mounts</h2>
+    <p class="dek">Containers are disposable. Your data isn't. This chapter is about keeping the two apart.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Three places data can live</h3><span class="chip lab">Lab 02</span><span class="chip lab">Lab 03</span></div>
+    <p class="def">By default a container writes into its own writable layer, which is deleted with the container. Mounts redirect a path to storage that outlives it.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 230" role="img" aria-labelledby="vol-t">
+        <title id="vol-t">A container's writable layer is deleted with the container. A named volume managed by Docker is mounted at /var/lib/mysql, and a host file uploads.ini is bind-mounted into PHP's conf.d folder; both survive the container.</title>
+        <rect x="14" y="14" width="400" height="202" rx="10" class="d-box"/>
+        <text x="30" y="38" class="d-h">CONTAINER</text>
+        <rect x="30" y="52" width="210" height="40" rx="4" class="d-stop"/><text x="44" y="70" class="d-stop-t">Writable layer</text><text x="44" y="85" class="d-cap">deleted by docker rm</text>
+        <rect x="30" y="102" width="210" height="22" rx="3" class="d-soft"/><text x="44" y="118" class="d-cap">image layer (read-only)</text>
+        <rect x="30" y="128" width="210" height="22" rx="3" class="d-soft"/><text x="44" y="144" class="d-cap">image layer (read-only)</text>
+        <rect x="30" y="154" width="210" height="22" rx="3" class="d-soft"/><text x="44" y="170" class="d-cap">image layer (read-only)</text>
+        <rect x="256" y="78" width="150" height="40" rx="4" class="d-acc"/><text x="268" y="102" class="d-lbl" style="fill:var(--accent-ink)">/var/lib/mysql</text>
+        <rect x="256" y="150" width="150" height="40" rx="4" class="d-sea"/><text x="268" y="168" class="d-lbl" style="fill:var(--sea-ink)">…/conf.d/</text><text x="268" y="182" class="d-lbl" style="fill:var(--sea-ink)">uploads.ini</text>
+        <rect x="490" y="70" width="216" height="56" rx="6" class="d-acc"/><text x="504" y="93" class="d-acc-t">Named volume</text><text x="504" y="112" class="d-lbl">wp-db-data · Docker-managed</text>
+        <rect x="490" y="142" width="216" height="56" rx="6" class="d-sea"/><text x="504" y="165" class="d-sea-t">Bind mount</text><text x="504" y="184" class="d-lbl">./uploads.ini · your folder</text>
+        <path d="M490 98 H 412" class="d-line-acc" marker-end="url(#ah-acc)"/><text x="451" y="90" text-anchor="middle" class="d-lbl">-v</text>
+        <path d="M490 170 H 412" class="d-line-sea" marker-end="url(#ah-sea)"/><text x="451" y="162" text-anchor="middle" class="d-lbl">-v :ro</text>
+        <text x="490" y="40" class="d-h">OUTLIVES THE CONTAINER</text>
+      </svg>
+      <figcaption>Lab 03's setup: MySQL data in a named volume; a PHP config file bind-mounted read-only from your laptop.</figcaption>
+    </figure>
+    <div class="tbl"><table>
+      <thead><tr><th></th><th>Writable layer</th><th>Named volume</th><th>Bind mount</th></tr></thead>
+      <tbody>
+        <tr><td>Survives <code>docker rm</code></td><td class="no">No</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+        <tr><td>Managed by</td><td>Docker, per container</td><td>Docker</td><td>You (a normal host path)</td></tr>
+        <tr><td>Syntax</td><td>(default)</td><td><code>-v name:/path</code></td><td><code>-v "$PWD/file":/path</code></td></tr>
+        <tr><td>Best for</td><td>Scratch files</td><td>Databases, uploads, app state</td><td>Config files, live-reload source code</td></tr>
+        <tr><td>Portable?</td><td>n/a</td><td class="yes">Yes</td><td class="maybe">Depends on host paths</td></tr>
+      </tbody>
+    </table></div>
+    <div class="box analogy"><span class="k">Analogy</span><p>A container is a <strong>hotel room</strong>: housekeeping wipes it after every guest. A named volume is the <strong>hotel safe-deposit box</strong>: the hotel manages it, and it's still there next stay. A bind mount is <strong>bringing your own suitcase</strong>: your stuff, from your house, sitting in the room.</p></div>
+    <div class="box trap"><span class="k">Trap</span><p><strong>Mount at the path the app actually uses.</strong> A volume at <code>/var/lib/mysql-data</code> looks responsible but saves nothing, because MySQL writes to <code>/var/lib/mysql</code>. Lab 05, Mission 2 is built around this exact bug. Check the image docs for the data directory.</p></div>
+    <div class="box trap"><span class="k">Trap</span><p>If the host path in a bind mount doesn't exist, Docker creates a <em>directory</em> with that name. Mount <code>./uploads.ini</code> before creating the file and you'll get a folder called <code>uploads.ini</code> and a confused PHP.</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Stateless vs. stateful</h3><span class="chip lab">Lab 03</span><span class="chip lab">Lab 04</span></div>
+    <p class="def">A stateless container keeps nothing it can't afford to lose; a stateful one owns data that must persist.</p>
+    <p>In Lab 03 you delete and recreate the WordPress container, and the site is still installed, because every post, user and setting lives in MySQL. That makes the WordPress container almost <em>stateless</em>, and stateless containers are trivially easy to scale, replace and move. Lab 04 proves it by running two WordPress replicas against one database. It's the single most important design idea to carry into Kubernetes.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="dockerfile">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 11 · Docker</span>
+    <h2>Dockerfiles &amp; layers</h2>
+    <p class="dek">The recipe for an image, why line order decides whether builds take seconds or minutes, and what to keep out.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Dockerfile</h3><span class="chip lab">Lab 04</span></div>
+    <p class="def">A text file of instructions, run top to bottom, where each instruction that changes the filesystem produces a new layer.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Instruction</th><th>What it does</th><th>Layer?</th></tr></thead>
+      <tbody>
+        <tr><td><code>FROM</code></td><td>Start from a base image (or <code>scratch</code>, the empty image)</td><td>Base</td></tr>
+        <tr><td><code>WORKDIR</code></td><td><code>mkdir -p</code> + <code>cd</code> for the following instructions</td><td>Tiny</td></tr>
+        <tr><td><code>COPY</code></td><td>Copy files from the build context into the image</td><td class="yes">Yes</td></tr>
+        <tr><td><code>RUN</code></td><td>Execute a command at build time and keep the result</td><td class="yes">Yes</td></tr>
+        <tr><td><code>ENV</code> / <code>ARG</code></td><td>Run-time / build-time variables</td><td>Metadata</td></tr>
+        <tr><td><code>USER</code></td><td>Switch to a non-root user for following steps and at run time</td><td>Metadata</td></tr>
+        <tr><td><code>EXPOSE</code></td><td><em>Documents</em> the listening port. It does not publish it; <code>-p</code> does.</td><td>Metadata</td></tr>
+        <tr><td><code>HEALTHCHECK</code></td><td>Command Docker runs periodically to judge health</td><td>Metadata</td></tr>
+        <tr><td><code>CMD</code></td><td>Default command; easily overridden by <code>docker run IMAGE other-cmd</code></td><td>Metadata</td></tr>
+        <tr><td><code>ENTRYPOINT</code></td><td>The fixed executable; <code>docker run</code> arguments are appended to it</td><td>Metadata</td></tr>
+      </tbody>
+    </table></div>
+    <div class="box trap"><span class="k">Trap</span><p><strong>Shell form vs. exec form.</strong> <code>CMD python app.py</code> runs <code>/bin/sh -c "python app.py"</code>, so the shell is PID 1 and may not pass <code>SIGTERM</code> on to your app: shutdowns hang for 10 seconds, then get killed. <code>CMD ["python", "app.py"]</code> (exec form) makes your app PID 1. Prefer exec form.</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>The build cache</h3><span class="chip lab">Lab 04</span></div>
+    <p class="def">Docker reuses a layer from a previous build if the instruction and everything it depends on are unchanged. Once one layer changes, every layer after it is rebuilt.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 268" role="img" aria-labelledby="cache-t">
+        <title id="cache-t">Two builds of the same Dockerfile. In build two only main.go changed, so FROM, WORKDIR, COPY go.mod and go mod download are cached, while COPY . . and go build are rebuilt.</title>
+        <text x="20" y="22" class="d-h">BUILD #1 · FIRST TIME</text>
+        <text x="380" y="22" class="d-h">BUILD #2 · EDITED main.go</text>
+        <g>
+          <rect x="20" y="40" width="320" height="30" rx="4" class="d-box"/><text x="34" y="60" class="d-mono">RUN go build</text><text x="326" y="60" text-anchor="end" class="d-cap">built</text>
+          <rect x="20" y="76" width="320" height="30" rx="4" class="d-box"/><text x="34" y="96" class="d-mono">COPY . .</text><text x="326" y="96" text-anchor="end" class="d-cap">built</text>
+          <rect x="20" y="112" width="320" height="30" rx="4" class="d-box"/><text x="34" y="132" class="d-mono">RUN go mod download</text><text x="326" y="132" text-anchor="end" class="d-cap">built · slow 🐌</text>
+          <rect x="20" y="148" width="320" height="30" rx="4" class="d-box"/><text x="34" y="168" class="d-mono">COPY go.mod ./</text><text x="326" y="168" text-anchor="end" class="d-cap">built</text>
+          <rect x="20" y="184" width="320" height="30" rx="4" class="d-box"/><text x="34" y="204" class="d-mono">WORKDIR /src</text><text x="326" y="204" text-anchor="end" class="d-cap">built</text>
+          <rect x="20" y="220" width="320" height="30" rx="4" class="d-soft"/><text x="34" y="240" class="d-mono">FROM golang:1.23-alpine</text><text x="326" y="240" text-anchor="end" class="d-cap">pulled</text>
+        </g>
+        <g>
+          <rect x="380" y="40" width="320" height="30" rx="4" class="d-amb"/><text x="394" y="60" class="d-mono">RUN go build</text><text x="686" y="60" text-anchor="end" class="d-amb-t" style="font-size:11.5px">REBUILT</text>
+          <rect x="380" y="76" width="320" height="30" rx="4" class="d-amb"/><text x="394" y="96" class="d-mono">COPY . .</text><text x="686" y="96" text-anchor="end" class="d-amb-t" style="font-size:11.5px">REBUILT ← change</text>
+          <rect x="380" y="112" width="320" height="30" rx="4" class="d-go"/><text x="394" y="132" class="d-mono">RUN go mod download</text><text x="686" y="132" text-anchor="end" class="d-go-t" style="font-size:11.5px">CACHED ⚡</text>
+          <rect x="380" y="148" width="320" height="30" rx="4" class="d-go"/><text x="394" y="168" class="d-mono">COPY go.mod ./</text><text x="686" y="168" text-anchor="end" class="d-go-t" style="font-size:11.5px">CACHED</text>
+          <rect x="380" y="184" width="320" height="30" rx="4" class="d-go"/><text x="394" y="204" class="d-mono">WORKDIR /src</text><text x="686" y="204" text-anchor="end" class="d-go-t" style="font-size:11.5px">CACHED</text>
+          <rect x="380" y="220" width="320" height="30" rx="4" class="d-go"/><text x="394" y="240" class="d-mono">FROM golang:1.23-alpine</text><text x="686" y="240" text-anchor="end" class="d-go-t" style="font-size:11.5px">CACHED</text>
+        </g>
+        <path d="M356 236 V 52" class="d-line" marker-end="url(#ah)"/>
+      </svg>
+      <figcaption>Layers stack bottom-up. Because dependencies are installed from <code>go.mod</code> <em>before</em> the source is copied, editing code skips the slow download step.</figcaption>
+    </figure>
+    <p class="rule-line">Least-changing things first. Most-changing things last.</p>
+    <div class="box analogy"><span class="k">Analogy</span><p>Packing a suitcase: put the things you'll never need to change (shoes, toiletries) at the bottom, and the outfit you keep swapping on top. If you swap the outfit, you don't repack the shoes. Put the outfit at the bottom and every change means unpacking everything.</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3><code>.dockerignore</code> and the build context</h3><span class="chip lab">Lab 04</span><span class="chip lab">Lab 05</span></div>
+    <p class="def">The build context is the folder you pass to <code>docker build</code>; everything in it is sent to the builder unless <code>.dockerignore</code> excludes it.</p>
+    <p>Without one, <code>COPY . .</code> can sweep in <code>.git</code> history, <code>node_modules</code>, local <code>.env</code> secrets and build output. That means slower builds, bigger images and cache busts every time an irrelevant file changes. Syntax is like <code>.gitignore</code>:</p>
+    <pre><code>.git
+.env
+node_modules/
+__pycache__/
+*.md
+Dockerfile*</code></pre>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="multistage">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 12 · Docker</span>
+    <h2>Multi-stage builds</h2>
+    <p class="dek">Build in a workshop, ship in an envelope. The single biggest lever on image size.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Two <code>FROM</code>s, one image</h3><span class="chip lab">Lab 04</span></div>
+    <p class="def">A Dockerfile can have several stages. Later stages copy just the artifacts they need from earlier ones, and only the last stage becomes the image.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 210" role="img" aria-labelledby="ms-t">
+        <title id="ms-t">Stage one, based on golang alpine at about 300 megabytes, holds the Go toolchain, source code and module cache and produces a binary. Only the binary is copied into stage two, FROM scratch, which becomes the 5.4 megabyte final image. Everything else is thrown away.</title>
+        <rect x="14" y="14" width="360" height="160" rx="10" class="d-amb"/>
+        <text x="30" y="38" class="d-h" style="fill:var(--amber)">STAGE 1 · build</text>
+        <text x="30" y="56" class="d-lbl">FROM golang:1.23-alpine AS build · ~300 MB</text>
+        <rect x="30" y="70" width="150" height="30" rx="4" class="d-box"/><text x="105" y="90" text-anchor="middle" class="d-t">Go toolchain</text>
+        <rect x="190" y="70" width="168" height="30" rx="4" class="d-box"/><text x="274" y="90" text-anchor="middle" class="d-t">source code</text>
+        <rect x="30" y="108" width="150" height="30" rx="4" class="d-box"/><text x="105" y="128" text-anchor="middle" class="d-t">module cache</text>
+        <rect x="190" y="108" width="168" height="30" rx="4" class="d-acc"/><text x="274" y="128" text-anchor="middle" class="d-acc-t">/out/whoami</text>
+        <text x="30" y="160" class="d-cap">🗑️ everything except the binary is discarded</text>
+        <rect x="470" y="40" width="236" height="110" rx="10" class="d-go"/>
+        <text x="486" y="64" class="d-h" style="fill:var(--go)">STAGE 2 · final</text>
+        <text x="486" y="82" class="d-lbl">FROM scratch · 0 MB base</text>
+        <rect x="486" y="96" width="204" height="34" rx="4" class="d-acc"/><text x="588" y="118" text-anchor="middle" class="d-acc-t">/whoami (5.4 MB)</text>
+        <path d="M358 123 C 410 123, 420 113, 480 113" class="d-line-acc" marker-end="url(#ah-acc)"/>
+        <text x="422" y="92" text-anchor="middle" class="d-lbl">COPY</text><text x="422" y="105" text-anchor="middle" class="d-lbl">--from=build</text>
+        <text x="470" y="180" class="d-cap">+ USER 65532 · HEALTHCHECK · ENTRYPOINT</text>
+      </svg>
+      <figcaption>The final image contains one static binary. No shell, no package manager, no compiler: nothing for an attacker to use, and almost nothing to patch.</figcaption>
+    </figure>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>What the diet is worth</h3><span class="chip lab">Lab 04</span><span class="chip lab">Lab 05</span></div>
+    <div class="sizes" role="figure" aria-labelledby="sz-h">
+      <h4 id="sz-h">Image size, measured in the labs (MB, linear scale)</h4>
+      <div class="row" title="whoami, single-stage golang:1.23-alpine: 326 MB"><div class="n">whoami · single-stage<small>golang:1.23-alpine</small></div><div class="track"><div class="b" style="width:26.9%"></div><span class="v">326 MB</span></div></div>
+      <div class="row" title="whoami, multi-stage FROM scratch: 5.44 MB"><div class="n">whoami · multi-stage<small>FROM scratch</small></div><div class="track"><div class="b" style="width:0.45%"></div><span class="v">5.4 MB · 60× smaller</span></div></div>
+      <div class="gap"></div>
+      <div class="row" title="fortune, python:3.12 plus vim, curl and build-essential: 1,210 MB"><div class="n">fortune · "just in case"<small>python:3.12 + extras</small></div><div class="track"><div class="b" style="width:100%"></div><span class="v">1,210 MB</span></div></div>
+      <div class="row" title="fortune, python:3.12-slim: 150 MB"><div class="n">fortune · slim<small>python:3.12-slim</small></div><div class="track"><div class="b" style="width:12.4%"></div><span class="v">150 MB</span></div></div>
+      <div class="row" title="fortune, python:3.12-alpine, non-root, healthcheck: 64 MB"><div class="n">fortune · alpine<small>python:3.12-alpine</small></div><div class="track"><div class="b" style="width:5.3%"></div><span class="v">64 MB · 19× smaller</span></div></div>
+      <p class="note">Measured on linux/arm64, October 2026. Sizes are uncompressed as shown by <code>docker images</code>; registry downloads are compressed and smaller.</p>
+    </div>
+    <ul>
+      <li><strong>Speed:</strong> every node pulls your image on every deploy and every scale-up. 5 MB arrives before 300 MB has started.</li>
+      <li><strong>Security:</strong> fewer packages means fewer CVEs in scanner reports, and no shell for an intruder.</li>
+      <li><strong>Cost:</strong> registry storage, network egress and disk on every node.</li>
+    </ul>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>"Distroless" images (from Google, Chainguard and others) sit between <code>scratch</code> and Alpine: no shell or package manager, but they do include CA certificates, timezone data and a non-root user. They're a common final stage for Java, Python and Node apps that can't be a single static binary.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="compose">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 13 · Docker</span>
+    <h2>Docker Compose</h2>
+    <p class="dek">Your entire multi-container app as one readable, reviewable file, and one command to bring it up.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3><code>compose.yaml</code></h3><span class="chip lab">Lab 03</span><span class="chip lab">Lab 04</span><span class="chip lab">Lab 05</span></div>
+    <p class="def">A declarative description of services, networks and volumes that Compose turns into running containers.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 240" role="img" aria-labelledby="cmp-t">
+        <title id="cmp-t">docker compose up reads compose.yaml and .env, then creates project wp-lab: a default network containing services db, wordpress and adminer, plus named volumes db-data and wp-data.</title>
+        <rect x="14" y="60" width="130" height="50" rx="6" class="d-box"/><text x="79" y="90" text-anchor="middle" class="d-mono">compose.yaml</text>
+        <rect x="14" y="120" width="130" height="40" rx="6" class="d-soft"/><text x="79" y="145" text-anchor="middle" class="d-mono">.env</text>
+        <path d="M144 112 H 196" class="d-line-acc" marker-end="url(#ah-acc)"/><text x="170" y="102" text-anchor="middle" class="d-lbl">up</text>
+        <rect x="204" y="10" width="502" height="220" rx="10" class="d-frame"/>
+        <text x="220" y="32" class="d-h">PROJECT · wp-lab</text>
+        <rect x="220" y="44" width="470" height="100" rx="8" class="d-frame-acc"/>
+        <text x="234" y="62" class="d-lbl" style="fill:var(--accent)">network: wp-lab_default (automatic)</text>
+        <rect x="236" y="74" width="136" height="56" rx="6" class="d-sea"/><text x="250" y="97" class="d-sea-t">db</text><text x="250" y="116" class="d-lbl">mysql:8.4</text>
+        <rect x="386" y="74" width="140" height="56" rx="6" class="d-sea"/><text x="400" y="97" class="d-sea-t">wordpress</text><text x="400" y="116" class="d-lbl">:8080 → 80</text>
+        <rect x="540" y="74" width="136" height="56" rx="6" class="d-sea"/><text x="554" y="97" class="d-sea-t">adminer</text><text x="554" y="116" class="d-lbl">:8082 → 8080</text>
+        <rect x="236" y="166" width="136" height="44" rx="22" class="d-acc"/><text x="304" y="193" text-anchor="middle" class="d-acc-t">vol: db-data</text>
+        <rect x="386" y="166" width="140" height="44" rx="22" class="d-acc"/><text x="456" y="193" text-anchor="middle" class="d-acc-t">vol: wp-data</text>
+        <path d="M304 166 V 134" class="d-line" marker-end="url(#ah)"/>
+        <path d="M456 166 V 134" class="d-line" marker-end="url(#ah)"/>
+        <text x="540" y="186" class="d-cap">service name = DNS name</text>
+        <text x="540" y="202" class="d-cap">containers: wp-lab-db-1, …</text>
+      </svg>
+      <figcaption>One file declares it all. Compose prefixes everything with the project name, so two projects never collide.</figcaption>
+    </figure>
+    <div class="vs">
+      <div><span class="lbl">Before · docker run</span>
+<pre><code>docker network create my-wp
+docker volume create wp-db-data
+docker run --name wp-mysql \
+  -e MYSQL_ROOT_PASSWORD=root \
+  -e MYSQL_DATABASE=wp \
+  -e MYSQL_USER=user \
+  -e MYSQL_PASSWORD=admin \
+  -v wp-db-data:/var/lib/mysql \
+  --net=my-wp -d mysql:8.4
+docker run --name wordpress \
+  -e WORDPRESS_DB_HOST=wp-mysql \
+  -e WORDPRESS_DB_USER=user \
+  -e WORDPRESS_DB_PASSWORD=admin \
+  -e WORDPRESS_DB_NAME=wp \
+  --net=my-wp -p 8080:80 \
+  -d wordpress:7.1-php8.3-apache</code></pre></div>
+      <div><span class="lbl">After · compose.yaml</span>
+<pre><code>services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wp
+      MYSQL_USER: user
+      MYSQL_PASSWORD: admin
+    volumes: [db-data:/var/lib/mysql]
+  wordpress:
+    image: wordpress:7.1-php8.3-apache
+    ports: ["8080:80"]
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: user
+      WORDPRESS_DB_PASSWORD: admin
+      WORDPRESS_DB_NAME: wp
+volumes:
+  db-data:</code></pre></div>
+    </div>
+    <div class="box analogy"><span class="k">Analogy</span><p><code>docker run</code> is <strong>giving a chef instructions out loud</strong>, one dish at a time. Compose is <strong>handing over the whole menu, written down</strong>: anyone can cook it, review it, or reproduce tonight's dinner next year.</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>What survives what</h3><span class="chip lab">Lab 03</span></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Command</th><th>Containers</th><th>Network</th><th>Volumes</th></tr></thead>
+      <tbody>
+        <tr><td><code>docker compose stop</code></td><td>Stopped</td><td class="yes">Kept</td><td class="yes">Kept</td></tr>
+        <tr><td><code>docker compose down</code></td><td class="no">Removed</td><td class="no">Removed</td><td class="yes">Kept</td></tr>
+        <tr><td><code>docker compose down -v</code></td><td class="no">Removed</td><td class="no">Removed</td><td class="no">Deleted 🔥</td></tr>
+      </tbody>
+    </table></div>
+    <div class="box trap"><span class="k">Trap</span><p><code>-v</code> on <code>down</code> means <em>volumes</em>, not <em>verbose</em>. It's the "delete my database" flag. Great for resetting a dev environment; catastrophic muscle memory anywhere else.</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Handy Compose features</h3><span class="chip lab">Lab 03</span><span class="chip lab">Lab 04</span></div>
+    <ul>
+      <li><strong><code>.env</code> interpolation:</strong> <code>${MYSQL_PASSWORD}</code> is filled from a <code>.env</code> file next to <code>compose.yaml</code>. <code>${WP_PORT:-8080}</code> supplies a default. Commit a <code>.env.example</code>, never the real <code>.env</code>.</li>
+      <li><strong><code>$$</code> escapes a literal <code>$</code>:</strong> needed when you pass PHP or shell code (like Lab 04's <code>$$_SERVER['HTTP_HOST']</code>) through YAML.</li>
+      <li><strong><code>build:</code> + <code>image:</code>:</strong> build from a Dockerfile and tag the result. <code>build.args</code> passes <code>--build-arg</code>s.</li>
+      <li><strong>YAML anchors</strong> (<code>&amp;wordpress</code> / <code>&lt;&lt;: *wordpress</code>): reuse a block and override a few keys.</li>
+      <li><strong><code>deploy.replicas</code></strong> / <code>--scale</code>: run N copies of a service (Lab 05, Mission 4).</li>
+      <li><strong><code>docker compose config</code>:</strong> prints the fully-resolved file. Your first debugging move when something looks wrong.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="health">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 14 · Docker</span>
+    <h2>Healthchecks &amp; restarts</h2>
+    <p class="dek">"Started" is not "ready", and "crashed" doesn't have to mean "down".</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Healthcheck</h3><span class="chip lab">Lab 03</span><span class="chip lab">Lab 04</span><span class="chip lab">Lab 05</span></div>
+    <p class="def">A command Docker runs inside the container on a schedule; exit code 0 means healthy, anything else counts as a failure.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 196" role="img" aria-labelledby="hc-t">
+        <title id="hc-t">Timeline over 25 seconds. Without a healthcheck, WordPress starts at second 1 and shows database errors until MySQL is ready at about second 18. With a healthcheck and depends_on condition service_healthy, WordPress waits and starts at second 18, connecting first time.</title>
+        <line x1="150" y1="170" x2="700" y2="170" class="d-line"/>
+        <g class="d-lbl"><text x="150" y="188" text-anchor="middle">0s</text><text x="260" y="188" text-anchor="middle">5s</text><text x="370" y="188" text-anchor="middle">10s</text><text x="480" y="188" text-anchor="middle">15s</text><text x="590" y="188" text-anchor="middle">20s</text><text x="700" y="188" text-anchor="middle">25s</text></g>
+        <text x="14" y="22" class="d-h">WITHOUT</text>
+        <text x="14" y="44" class="d-t">db</text>
+        <rect x="150" y="32" width="396" height="18" rx="3" class="d-amb"/><text x="160" y="46" class="d-amb-t" style="font-size:11.5px">initialising…</text>
+        <rect x="546" y="32" width="154" height="18" rx="3" class="d-go"/><text x="556" y="46" class="d-go-t" style="font-size:11.5px">ready</text>
+        <text x="14" y="70" class="d-t">wordpress</text>
+        <rect x="172" y="58" width="374" height="18" rx="3" class="d-stop"/><text x="182" y="72" class="d-stop-t" style="font-size:11.5px">✕ Error establishing a database connection</text>
+        <rect x="546" y="58" width="154" height="18" rx="3" class="d-go"/><text x="556" y="72" class="d-go-t" style="font-size:11.5px">works</text>
+        <text x="14" y="104" class="d-h">WITH</text>
+        <text x="14" y="126" class="d-t">db</text>
+        <rect x="150" y="114" width="396" height="18" rx="3" class="d-amb"/><text x="160" y="128" class="d-amb-t" style="font-size:11.5px">health: starting (ping every 5s)</text>
+        <rect x="546" y="114" width="154" height="18" rx="3" class="d-go"/><text x="556" y="128" class="d-go-t" style="font-size:11.5px">healthy ✓</text>
+        <text x="14" y="152" class="d-t">wordpress</text>
+        <text x="160" y="154" class="d-cap">waiting (depends_on: service_healthy)</text>
+        <rect x="546" y="140" width="154" height="18" rx="3" class="d-go"/><text x="556" y="154" class="d-go-t" style="font-size:11.5px">starts, works</text>
+        <line x1="546" y1="26" x2="546" y2="166" class="d-line-stop" style="stroke:var(--muted)"/>
+      </svg>
+      <figcaption>Lab 03, Part 4. The healthcheck turns a race (and a scary error page) into an orderly start.</figcaption>
+    </figure>
+    <pre><code>healthcheck:
+  test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+  interval: 5s        <span class="c"># how often</span>
+  timeout: 5s         <span class="c"># per-check time limit</span>
+  retries: 10         <span class="c"># consecutive failures before "unhealthy"</span>
+  start_period: 20s   <span class="c"># grace period while booting</span></code></pre>
+    <div class="box try"><span class="k">Try it</span><p>When a container is stuck <code>unhealthy</code>, ask Docker why: <code>docker inspect --format '{{json .State.Health}}' &lt;container&gt;</code> shows the output of the last few checks. In Lab 05 it says <code>exec: "mysql-admin": executable file not found</code>.</p></div>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>Minimal images often lack <code>curl</code>. Lab 04's <code>whoami</code> binary checks itself (<code>/whoami -health</code>), and Lab 05's fortune service uses a one-line Python <code>urllib</code> call. Use whatever the image already has.</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Restart policies</h3><span class="chip lab">Lab 03</span></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Policy</th><th>After a crash</th><th>After Docker/host restarts</th></tr></thead>
+      <tbody>
+        <tr><td><code>no</code> (default)</td><td class="no">Stays down</td><td class="no">Stays down</td></tr>
+        <tr><td><code>on-failure</code></td><td class="yes">Restarts (non-zero exit only)</td><td class="yes">Restarts</td></tr>
+        <tr><td><code>always</code></td><td class="yes">Restarts</td><td class="yes">Restarts, even if you stopped it</td></tr>
+        <tr><td><code>unless-stopped</code></td><td class="yes">Restarts</td><td class="yes">Restarts, unless you stopped it</td></tr>
+      </tbody>
+    </table></div>
+    <div class="box trap"><span class="k">Trap</span><p>Docker restarts a container that <em>exits</em>, but an <em>unhealthy</em> one that keeps running is left alone; the health status is only informational. Kubernetes does act on failed liveness probes, by restarting the container. See <a href="#probes">Probes</a>.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="hygiene">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 15 · Docker</span>
+    <h2>Image hygiene</h2>
+    <p class="dek">The checklist that separates "it runs" from "it's ready to ship". Lab 05's boss level grades you on most of it.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>The production-ready checklist</h3><span class="chip lab">Lab 04</span><span class="chip lab">Lab 05</span></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Do</th><th>Why</th><th>How</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Pin base versions</strong></td><td>Reproducible builds; no surprise major upgrades</td><td><code>python:3.12-alpine</code>, not <code>python</code></td></tr>
+        <tr><td><strong>Start small</strong></td><td>Fewer CVEs, faster pulls</td><td><code>-slim</code>, <code>-alpine</code>, distroless, <code>scratch</code></td></tr>
+        <tr><td><strong>Multi-stage</strong></td><td>Leave compilers and caches behind</td><td><code>COPY --from=build</code></td></tr>
+        <tr><td><strong>Order for cache</strong></td><td>Fast rebuilds</td><td>Manifest → install → code</td></tr>
+        <tr><td><strong>Don't run as root</strong></td><td>Limits damage if the app is compromised</td><td><code>RUN adduser …</code> then <code>USER</code></td></tr>
+        <tr><td><strong>Add a HEALTHCHECK</strong></td><td>Orchestrators know when you're actually ready</td><td>Exercise a real endpoint</td></tr>
+        <tr><td><strong>Exec-form CMD</strong></td><td>Clean shutdown on <code>SIGTERM</code></td><td><code>CMD ["python", "app.py"]</code></td></tr>
+        <tr><td><strong>No secrets in layers</strong></td><td>Layers are readable forever</td><td>Runtime env/secrets, BuildKit <code>--secret</code></td></tr>
+        <tr><td><strong><code>.dockerignore</code></strong></td><td>Smaller context, no leaked files</td><td>Exclude <code>.git</code>, <code>.env</code>, deps</td></tr>
+        <tr><td><strong>Scan</strong></td><td>Know your vulnerabilities</td><td><code>docker scout cves IMAGE</code>, Trivy, Grype</td></tr>
+      </tbody>
+    </table></div>
+    <div class="box trap"><span class="k">Trap</span><p><strong>Deleting a file in a later layer doesn't shrink the image.</strong> <code>RUN apt-get install …</code> followed by <code>RUN rm -rf /var/lib/apt/lists/*</code> still ships the lists inside the first layer. Clean up in the <em>same</em> <code>RUN</code> step: <code>RUN apt-get update &amp;&amp; apt-get install -y x &amp;&amp; rm -rf /var/lib/apt/lists/*</code>.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<div class="divider" id="part-k8s">
+  <span class="eyebrow">Part 2 · Where you're headed</span>
+  <h2>Kubernetes</h2>
+  <p>Docker runs containers on one machine. Kubernetes keeps the right containers running across many machines, and fixes things when they break.</p>
+</div>
+
+<!-- ============================================================ -->
+<section class="part" id="k8s-why">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 16 · Kubernetes</span>
+    <h2>Why orchestration?</h2>
+    <p class="dek">Everything you did by hand in Labs 01–05 works brilliantly on one laptop. Now imagine 200 servers and 3 a.m.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>The questions Compose can't answer</h3></div>
+    <p class="def">An orchestrator is the software that decides <em>where</em> containers run, <em>keeps</em> the right number running, and <em>connects</em> them, across a fleet of machines.</p>
+    <ul>
+      <li>Which of my 50 servers has room for this container?</li>
+      <li>A server just died. Who restarts its 30 containers somewhere else?</li>
+      <li>How do I roll out v2 one replica at a time, and roll back if errors spike?</li>
+      <li>Traffic tripled. Can we go from 3 replicas to 12 automatically?</li>
+      <li>How do clients find a service whose containers keep moving between machines?</li>
+      <li>How do I hand out passwords without baking them into images?</li>
+    </ul>
+    <p><strong>Kubernetes</strong> (K8s) answers all of these, and has become the industry standard. It grew out of Google's internal system, Borg, was open-sourced in 2014, and is now run by the Cloud Native Computing Foundation. Every major cloud offers it as a managed service: EKS, GKE, AKS.</p>
+    <figure class="shot">
+      <img src="images/ship.jpg" width="1400" height="639" alt="A huge container ship with thousands of stacked containers being guided into the port of Le Havre by tugboats" loading="lazy">
+      <figcaption>Thousands of containers, one vessel, a crew steering it. CMA CGM Seine arriving at Le Havre. Photo: Arizonaman1, <a href="https://commons.wikimedia.org/wiki/File:CMA_CGM_Seine_au_port_du_Havre.jpg">Wikimedia Commons</a>, CC0.</figcaption>
+    </figure>
+    <div class="box tidbit"><span class="k">Tidbit</span><p><strong>Kubernetes</strong> is Greek for <em>helmsman</em> or <em>pilot</em>: the person who steers the ship full of containers. The logo is a seven-spoked ship's wheel, a nod to its working name at Google, <em>Project Seven of Nine</em>, after the ex-Borg character in Star Trek. "K8s" is a numeronym: K, eight letters, s.</p></div>
+    <div class="box analogy"><span class="k">Analogy</span><p>Docker is a <strong>crane operator</strong>: superb at moving one box exactly where you point. Kubernetes is the <strong>harbour master</strong>: you hand over a manifest ("three of these, two of those, always"), and the harbour master assigns berths, replaces anything that sinks, and never needs to be told twice.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="arch">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 17 · Kubernetes</span>
+    <h2>Inside a cluster</h2>
+    <p class="dek">A brain that decides, and workers that do. You talk only to the brain.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Control plane and nodes</h3></div>
+    <p class="def">A cluster is a <strong>control plane</strong> (which stores desired state and makes decisions) plus <strong>worker nodes</strong> (machines that actually run your containers).</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 360" role="img" aria-labelledby="arch-t">
+        <title id="arch-t">You run kubectl, which talks to the kube-apiserver in the control plane. The control plane also holds etcd, the scheduler and the controller manager. Three worker nodes each run a kubelet, kube-proxy and a container runtime, and host pods. Every kubelet talks to the API server.</title>
+        <rect x="14" y="54" width="104" height="52" rx="6" class="d-box"/><text x="66" y="78" text-anchor="middle" class="d-tb">You</text><text x="66" y="95" text-anchor="middle" class="d-lbl">kubectl</text>
+        <rect x="140" y="14" width="566" height="140" rx="10" class="d-frame-acc"/>
+        <text x="156" y="36" class="d-h" style="fill:var(--accent)">CONTROL PLANE</text>
+        <rect x="156" y="52" width="160" height="62" rx="6" class="d-acc"/><text x="236" y="78" text-anchor="middle" class="d-acc-t">kube-apiserver</text><text x="236" y="97" text-anchor="middle" class="d-cap">the front door</text>
+        <rect x="330" y="52" width="110" height="62" rx="6" class="d-soft"/><text x="385" y="78" text-anchor="middle" class="d-tb">etcd</text><text x="385" y="97" text-anchor="middle" class="d-cap">the database</text>
+        <rect x="454" y="52" width="114" height="62" rx="6" class="d-soft"/><text x="511" y="78" text-anchor="middle" class="d-tb">scheduler</text><text x="511" y="97" text-anchor="middle" class="d-cap">picks a node</text>
+        <rect x="582" y="52" width="112" height="62" rx="6" class="d-soft"/><text x="638" y="74" text-anchor="middle" class="d-tb">controller</text><text x="638" y="89" text-anchor="middle" class="d-tb">manager</text><text x="638" y="105" text-anchor="middle" class="d-cap">fixes drift</text>
+        <path d="M118 80 H 150" class="d-line-acc" marker-end="url(#ah-acc)"/>
+        <g>
+          <rect x="14" y="196" width="220" height="150" rx="10" class="d-box"/>
+          <text x="220" y="218" text-anchor="end" class="d-h">NODE 1</text>
+          <rect x="28" y="228" width="92" height="26" rx="4" class="d-sea"/><text x="74" y="246" text-anchor="middle" class="d-sea-t" style="font-size:12px">kubelet</text>
+          <rect x="126" y="228" width="94" height="26" rx="4" class="d-soft"/><text x="173" y="246" text-anchor="middle" class="d-cap">kube-proxy</text>
+          <rect x="28" y="260" width="192" height="22" rx="4" class="d-soft"/><text x="124" y="275" text-anchor="middle" class="d-cap">container runtime (containerd)</text>
+          <rect x="28" y="292" width="58" height="40" rx="8" class="d-go"/><text x="57" y="316" text-anchor="middle" class="d-go-t" style="font-size:11.5px">pod</text>
+          <rect x="94" y="292" width="58" height="40" rx="8" class="d-go"/><text x="123" y="316" text-anchor="middle" class="d-go-t" style="font-size:11.5px">pod</text>
+          <rect x="160" y="292" width="58" height="40" rx="8" class="d-go"/><text x="189" y="316" text-anchor="middle" class="d-go-t" style="font-size:11.5px">pod</text>
+        </g>
+        <g>
+          <rect x="250" y="196" width="220" height="150" rx="10" class="d-box"/>
+          <text x="456" y="218" text-anchor="end" class="d-h">NODE 2</text>
+          <rect x="264" y="228" width="92" height="26" rx="4" class="d-sea"/><text x="310" y="246" text-anchor="middle" class="d-sea-t" style="font-size:12px">kubelet</text>
+          <rect x="362" y="228" width="94" height="26" rx="4" class="d-soft"/><text x="409" y="246" text-anchor="middle" class="d-cap">kube-proxy</text>
+          <rect x="264" y="260" width="192" height="22" rx="4" class="d-soft"/><text x="360" y="275" text-anchor="middle" class="d-cap">container runtime (containerd)</text>
+          <rect x="264" y="292" width="58" height="40" rx="8" class="d-go"/><text x="293" y="316" text-anchor="middle" class="d-go-t" style="font-size:11.5px">pod</text>
+          <rect x="330" y="292" width="58" height="40" rx="8" class="d-go"/><text x="359" y="316" text-anchor="middle" class="d-go-t" style="font-size:11.5px">pod</text>
+        </g>
+        <g>
+          <rect x="486" y="196" width="220" height="150" rx="10" class="d-box"/>
+          <text x="692" y="218" text-anchor="end" class="d-h">NODE 3</text>
+          <rect x="500" y="228" width="92" height="26" rx="4" class="d-sea"/><text x="546" y="246" text-anchor="middle" class="d-sea-t" style="font-size:12px">kubelet</text>
+          <rect x="598" y="228" width="94" height="26" rx="4" class="d-soft"/><text x="645" y="246" text-anchor="middle" class="d-cap">kube-proxy</text>
+          <rect x="500" y="260" width="192" height="22" rx="4" class="d-soft"/><text x="596" y="275" text-anchor="middle" class="d-cap">container runtime (containerd)</text>
+          <rect x="500" y="292" width="58" height="40" rx="8" class="d-go"/><text x="529" y="316" text-anchor="middle" class="d-go-t" style="font-size:11.5px">pod</text>
+          <rect x="566" y="292" width="58" height="40" rx="8" class="d-go"/><text x="595" y="316" text-anchor="middle" class="d-go-t" style="font-size:11.5px">pod</text>
+          <rect x="632" y="292" width="58" height="40" rx="8" class="d-go"/><text x="661" y="316" text-anchor="middle" class="d-go-t" style="font-size:11.5px">pod</text>
+        </g>
+        <path d="M200 114 C 160 160, 90 170, 74 224" class="d-line-sea" marker-end="url(#ah-sea)"/>
+        <path d="M236 114 C 250 160, 300 170, 310 224" class="d-line-sea" marker-end="url(#ah-sea)"/>
+        <path d="M290 114 C 420 150, 530 165, 546 224" class="d-line-sea" marker-end="url(#ah-sea)"/>
+      </svg>
+      <figcaption>Everything, including the scheduler and controllers, talks through the API server. Managed services (EKS, GKE, AKS) run the control plane for you; you mostly see nodes and pods.</figcaption>
+    </figure>
+    <div class="tbl"><table>
+      <thead><tr><th>Component</th><th>Job</th><th>Harbour analogy</th></tr></thead>
+      <tbody>
+        <tr><td><strong>kube-apiserver</strong></td><td>The only entry point. Validates and stores every request.</td><td>Harbour master's office</td></tr>
+        <tr><td><strong>etcd</strong></td><td>Consistent key-value store holding all cluster state</td><td>The ledger of every berth and manifest</td></tr>
+        <tr><td><strong>scheduler</strong></td><td>Assigns new pods to nodes with enough CPU and memory</td><td>Berth allocator</td></tr>
+        <tr><td><strong>controller manager</strong></td><td>Runs loops that drive actual state toward desired state</td><td>Inspectors walking the docks</td></tr>
+        <tr><td><strong>kubelet</strong></td><td>Agent on each node; starts and monitors its pods</td><td>Dock foreman</td></tr>
+        <tr><td><strong>kube-proxy</strong></td><td>Programs node networking so Services route to pods</td><td>Signposts and road crew</td></tr>
+        <tr><td><strong>container runtime</strong></td><td>Actually runs containers (containerd, CRI-O)</td><td>The cranes</td></tr>
+      </tbody>
+    </table></div>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>Kubernetes doesn't use the Docker Engine on its nodes any more; it talks to <strong>containerd</strong> (which Docker itself uses under the hood) through the Container Runtime Interface. Your images are unaffected: anything you build with <code>docker build</code> follows the OCI image standard and runs on any of them.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="desired">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 18 · Kubernetes</span>
+    <h2>Desired state</h2>
+    <p class="dek">The idea that makes Kubernetes Kubernetes: you describe <em>what</em>, it works out <em>how</em>, forever.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Declarative, not imperative</h3></div>
+    <p class="def">You declare the end state in YAML ("3 replicas of whoami:v2"); controllers continuously compare reality to it and act on any difference.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 230" role="img" aria-labelledby="loop-t">
+        <title id="loop-t">The reconciliation loop: read desired state (replicas 3), observe actual state (2 running, one node died), compute the difference (1 missing), act (create 1 pod), and repeat forever.</title>
+        <rect x="260" y="8" width="200" height="52" rx="8" class="d-acc"/><text x="360" y="30" text-anchor="middle" class="d-acc-t">1 · Desired</text><text x="360" y="48" text-anchor="middle" class="d-lbl">replicas: 3</text>
+        <rect x="500" y="88" width="206" height="52" rx="8" class="d-sea"/><text x="603" y="110" text-anchor="middle" class="d-sea-t">2 · Observe</text><text x="603" y="128" text-anchor="middle" class="d-lbl">2 running (a node died)</text>
+        <rect x="260" y="168" width="200" height="52" rx="8" class="d-amb"/><text x="360" y="190" text-anchor="middle" class="d-amb-t">3 · Diff</text><text x="360" y="208" text-anchor="middle" class="d-lbl">1 missing</text>
+        <rect x="14" y="88" width="206" height="52" rx="8" class="d-go"/><text x="117" y="110" text-anchor="middle" class="d-go-t">4 · Act</text><text x="117" y="128" text-anchor="middle" class="d-lbl">create 1 pod</text>
+        <path d="M460 34 C 560 34, 600 50, 603 82" class="d-line" marker-end="url(#ah)"/>
+        <path d="M603 140 C 600 180, 540 194, 466 194" class="d-line" marker-end="url(#ah)"/>
+        <path d="M260 194 C 160 194, 120 180, 117 146" class="d-line" marker-end="url(#ah)"/>
+        <path d="M117 88 C 120 50, 170 34, 254 34" class="d-line" marker-end="url(#ah)"/>
+        <text x="360" y="112" text-anchor="middle" class="d-h">RECONCILE</text>
+        <text x="360" y="130" text-anchor="middle" class="d-cap">…forever, every few seconds</text>
+      </svg>
+      <figcaption>Delete a pod by hand and it's back within seconds. That's not a bug: you didn't change the desired state, so the controller "fixed" reality.</figcaption>
+    </figure>
+    <div class="vs">
+      <div><span class="lbl">Imperative · Docker</span>
+<pre><code>docker run -d whoami:v2
+docker run -d whoami:v2
+docker run -d whoami:v2
+<span class="c"># one dies at 3 a.m.?</span>
+<span class="c"># …you run it again.</span></code></pre></div>
+      <div><span class="lbl">Declarative · Kubernetes</span>
+<pre><code>spec:
+  replicas: 3
+  ...
+<span class="c"># one dies at 3 a.m.?</span>
+<span class="c"># K8s replaces it. You sleep.</span></code></pre></div>
+    </div>
+    <div class="box analogy"><span class="k">Analogy</span><p>A <strong>thermostat</strong>. You don't tell the boiler "burn for 12 minutes". You set 21 °C, and the thermostat keeps checking and correcting. Open a window (kill a pod) and it simply works harder until reality matches the setting again.</p></div>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>You've seen a tiny version of this already: Lab 03's <code>restart: unless-stopped</code> brings a crashed container back. Kubernetes generalises that to <em>everything</em>: replica counts, rollouts, networking rules, even the nodes themselves, with cluster autoscalers.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="pods">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 19 · Kubernetes</span>
+    <h2>Pods</h2>
+    <p class="dek">Kubernetes never runs a bare container. It runs pods.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Pod</h3></div>
+    <p class="def">The smallest deployable unit: one or more containers that share a network identity (one IP, one <code>localhost</code>) and can share volumes, always scheduled together on the same node.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 210" role="img" aria-labelledby="pod-t">
+        <title id="pod-t">A pod with IP 10.244.1.7 contains an app container on port 8080 and a log-shipper sidecar. They share localhost networking and a shared volume.</title>
+        <rect x="120" y="14" width="480" height="182" rx="24" class="d-go"/>
+        <text x="146" y="44" class="d-h" style="fill:var(--go)">POD · whoami-5f6b7-9qv2c</text>
+        <text x="146" y="62" class="d-lbl">IP 10.244.1.7 · labels: app=whoami</text>
+        <rect x="146" y="78" width="170" height="60" rx="6" class="d-box"/><text x="160" y="102" class="d-tb">container: app</text><text x="160" y="122" class="d-lbl">whoami:v2 · :8080</text>
+        <rect x="404" y="78" width="170" height="60" rx="6" class="d-box"/><text x="418" y="102" class="d-tb">container: sidecar</text><text x="418" y="122" class="d-lbl">log shipper</text>
+        <path d="M322 112 H 398" class="d-line" marker-end="url(#ah)" marker-start="url(#ah)"/><text x="360" y="102" text-anchor="middle" class="d-lbl">localhost</text>
+        <rect x="146" y="150" width="428" height="30" rx="4" class="d-acc"/><text x="360" y="170" text-anchor="middle" class="d-acc-t">shared volume: /var/log/app</text>
+      </svg>
+      <figcaption>Most pods have exactly one container. Extra "sidecar" containers handle helper jobs such as shipping logs, proxying traffic or refreshing certificates.</figcaption>
+    </figure>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Pod
+<span class="k">metadata:</span>
+  name: whoami
+  labels: { app: whoami }
+<span class="k">spec:</span>
+  containers:
+    - name: app
+      image: ghcr.io/you/whoami:v2   <span class="c"># the image you pushed in Lab 04</span>
+      ports: [{ containerPort: 8080 }]
+      env: [{ name: MESSAGE, value: "Hello from a pod" }]</code></pre>
+    <div class="box analogy"><span class="k">Analogy</span><p>If containers are shipping containers, a pod is a <strong>flatbed truck</strong>: usually carrying one box, sometimes two that must travel together. The truck has one licence plate (IP address), and whatever's on it goes to the same destination.</p></div>
+    <div class="box trap"><span class="k">Trap</span><p><strong>Don't create bare pods for real workloads.</strong> A pod is mortal: if its node dies, nothing brings it back. Always wrap pods in a controller, usually a <a href="#deployments">Deployment</a>, which recreates them. Pod names and IPs change on every recreation; never hard-code them.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="deployments">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 20 · Kubernetes</span>
+    <h2>Deployments</h2>
+    <p class="dek">"Run N copies of this image, and change versions without downtime." The workhorse object you'll write most.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Deployment → ReplicaSet → Pods</h3><span class="chip lab">Lab 04 idea</span></div>
+    <p class="def">A Deployment manages ReplicaSets, which keep an exact number of identical pods running; changing the pod template triggers a rolling update.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 262" role="img" aria-labelledby="dep-t">
+        <title id="dep-t">A rolling update from v1 to v2. The Deployment owns ReplicaSet v1, scaling down from 3 to 1, and ReplicaSet v2, scaling up from 0 to 2. Old v1 pods are terminated as new v2 pods become ready.</title>
+        <rect x="230" y="10" width="260" height="56" rx="8" class="d-acc"/><text x="360" y="34" text-anchor="middle" class="d-acc-t">Deployment · whoami</text><text x="360" y="54" text-anchor="middle" class="d-lbl">replicas: 3 · image: whoami:v2</text>
+        <rect x="40" y="104" width="280" height="50" rx="8" class="d-box"/><text x="180" y="126" text-anchor="middle" class="d-tb">ReplicaSet · v1</text><text x="180" y="144" text-anchor="middle" class="d-lbl">scaling 3 → 1</text>
+        <rect x="400" y="104" width="280" height="50" rx="8" class="d-box"/><text x="540" y="126" text-anchor="middle" class="d-tb">ReplicaSet · v2</text><text x="540" y="144" text-anchor="middle" class="d-lbl">scaling 0 → 2</text>
+        <path d="M300 66 C 250 80, 200 86, 190 98" class="d-line" marker-end="url(#ah)"/>
+        <path d="M420 66 C 470 80, 520 86, 530 98" class="d-line" marker-end="url(#ah)"/>
+        <rect x="40" y="186" width="84" height="56" rx="10" class="d-go"/><text x="82" y="210" text-anchor="middle" class="d-go-t" style="font-size:12px">pod v1</text><text x="82" y="228" text-anchor="middle" class="d-cap">running</text>
+        <rect x="138" y="186" width="84" height="56" rx="10" class="d-stop" style="stroke-dasharray:5 4"/><text x="180" y="210" text-anchor="middle" class="d-stop-t" style="font-size:12px">pod v1</text><text x="180" y="228" text-anchor="middle" class="d-cap">terminating</text>
+        <rect x="236" y="186" width="84" height="56" rx="10" class="d-stop" style="stroke-dasharray:5 4"/><text x="278" y="210" text-anchor="middle" class="d-stop-t" style="font-size:12px">pod v1</text><text x="278" y="228" text-anchor="middle" class="d-cap">terminated</text>
+        <rect x="400" y="186" width="84" height="56" rx="10" class="d-go"/><text x="442" y="210" text-anchor="middle" class="d-go-t" style="font-size:12px">pod v2</text><text x="442" y="228" text-anchor="middle" class="d-cap">ready</text>
+        <rect x="498" y="186" width="84" height="56" rx="10" class="d-amb"/><text x="540" y="210" text-anchor="middle" class="d-amb-t" style="font-size:12px">pod v2</text><text x="540" y="228" text-anchor="middle" class="d-cap">starting</text>
+        <rect x="596" y="186" width="84" height="56" rx="10" class="d-box" style="stroke-dasharray:5 4"/><text x="638" y="218" text-anchor="middle" class="d-cap">next…</text>
+        <path d="M180 154 V 180" class="d-line"/><path d="M540 154 V 180" class="d-line"/>
+        <path d="M82 180 H 278 V 186" class="d-line" style="fill:none"/><path d="M442 180 H 638" class="d-line"/>
+      </svg>
+      <figcaption>A rolling update in progress: new pods must pass their readiness probe before old ones are removed, so users never see downtime. <code>kubectl rollout undo</code> reverses it.</figcaption>
+    </figure>
+<pre><code><span class="k">apiVersion:</span> apps/v1
+<span class="k">kind:</span> Deployment
+<span class="k">metadata:</span>
+  name: whoami
+<span class="k">spec:</span>
+  replicas: 3                        <span class="c"># Lab 05, Mission 4… but across many machines</span>
+  selector:
+    matchLabels: { app: whoami }     <span class="c"># which pods this Deployment owns</span>
+  template:                          <span class="c"># the pod "cookie cutter"</span>
+    metadata:
+      labels: { app: whoami }
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/you/whoami:v2
+          ports: [{ containerPort: 8080 }]</code></pre>
+    <div class="box try"><span class="k">Try it</span><p>On a local cluster: <code>kubectl create deployment whoami --image=traefik/whoami --replicas=3</code>, then <code>kubectl get pods -w</code> in one terminal and <code>kubectl delete pod &lt;one-of-them&gt;</code> in another. Watch a replacement appear within seconds.</p></div>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>Remember Lab 04's "ship v2 while v1 keeps running"? You did a manual blue/green deploy. Deployments automate the gradual version (rolling update) with knobs like <code>maxSurge</code> (how many extra pods during a rollout) and <code>maxUnavailable</code> (how many can be missing).</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="services">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 21 · Kubernetes</span>
+    <h2>Services</h2>
+    <p class="dek">Pods come and go and change IPs. A Service is the stable name and address in front of them.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Service</h3><span class="chip lab">Lab 05 idea</span></div>
+    <p class="def">A stable virtual IP and DNS name that load-balances traffic across every <em>ready</em> pod whose labels match its selector.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 230" role="img" aria-labelledby="svc-t">
+        <title id="svc-t">A client pod calls whoami:80. The whoami Service, ClusterIP 10.96.0.12 with selector app=whoami, spreads traffic across three pods labelled app=whoami. A fourth pod labelled app=fortune is not selected.</title>
+        <rect x="14" y="80" width="130" height="60" rx="10" class="d-box"/><text x="79" y="106" text-anchor="middle" class="d-tb">client pod</text><text x="79" y="125" text-anchor="middle" class="d-lbl">http://whoami</text>
+        <path d="M144 110 H 200" class="d-line" marker-end="url(#ah)"/>
+        <rect x="206" y="66" width="200" height="88" rx="10" class="d-acc"/><text x="306" y="92" text-anchor="middle" class="d-acc-t">Service · whoami</text><text x="306" y="112" text-anchor="middle" class="d-lbl">ClusterIP 10.96.0.12</text><text x="306" y="130" text-anchor="middle" class="d-lbl">selector: app=whoami</text>
+        <rect x="500" y="10" width="200" height="44" rx="10" class="d-go"/><text x="516" y="30" class="d-go-t" style="font-size:12px">pod · 10.244.1.7</text><text x="516" y="46" class="d-lbl">app=whoami ✓</text>
+        <rect x="500" y="64" width="200" height="44" rx="10" class="d-go"/><text x="516" y="84" class="d-go-t" style="font-size:12px">pod · 10.244.2.4</text><text x="516" y="100" class="d-lbl">app=whoami ✓</text>
+        <rect x="500" y="118" width="200" height="44" rx="10" class="d-go"/><text x="516" y="138" class="d-go-t" style="font-size:12px">pod · 10.244.3.9</text><text x="516" y="154" class="d-lbl">app=whoami ✓</text>
+        <rect x="500" y="176" width="200" height="44" rx="10" class="d-box" style="stroke-dasharray:5 4"/><text x="516" y="196" class="d-t" style="font-size:12px">pod · 10.244.1.8</text><text x="516" y="212" class="d-lbl">app=fortune ✕</text>
+        <path d="M406 96 C 450 70, 460 34, 494 32" class="d-line-acc" marker-end="url(#ah-acc)"/>
+        <path d="M406 110 C 450 100, 460 86, 494 86" class="d-line-acc" marker-end="url(#ah-acc)"/>
+        <path d="M406 124 C 450 132, 460 140, 494 140" class="d-line-acc" marker-end="url(#ah-acc)"/>
+      </svg>
+      <figcaption>Labels are the glue. The Service doesn't know about Deployments at all; it just routes to any ready pod wearing <code>app=whoami</code>.</figcaption>
+    </figure>
+    <div class="tbl"><table>
+      <thead><tr><th>Type</th><th>Reachable from</th><th>Docker equivalent</th></tr></thead>
+      <tbody>
+        <tr><td><code>ClusterIP</code> (default)</td><td>Inside the cluster only</td><td>Service name on a Compose network</td></tr>
+        <tr><td><code>NodePort</code></td><td>Every node's IP on a port in 30000–32767</td><td><code>-p 30080:8080</code> on every machine</td></tr>
+        <tr><td><code>LoadBalancer</code></td><td>A cloud load balancer with a public IP</td><td>No direct equivalent</td></tr>
+      </tbody>
+    </table></div>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>In Lab 05, Mission 4 you saw Docker's DNS return three IPs for <code>whoami</code>, with requests landing on different replicas, but not evenly. A Kubernetes Service gives you one stable IP and genuine balancing at the connection level, and drops pods that fail their readiness probe. Same idea, grown up.</p></div>
+    <div class="box analogy"><span class="k">Analogy</span><p>A Service is a <strong>restaurant's phone number</strong>. Staff change shifts, people get sick, new hires join, but customers always dial the same number and someone who's actually on shift picks up.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="ingress">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 22 · Kubernetes</span>
+    <h2>Ingress</h2>
+    <p class="dek">One front door for HTTP traffic, routing by hostname and path to the right Service.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Ingress &amp; Gateway API</h3></div>
+    <p class="def">An Ingress is a set of HTTP routing rules (host, path, TLS) that an ingress controller enforces at the edge of the cluster.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 200" role="img" aria-labelledby="ing-t">
+        <title id="ing-t">Internet traffic reaches an ingress controller at news.example.com. Path slash goes to the wordpress Service and its pods; path slash fortune goes to the fortune Service and its pods.</title>
+        <rect x="14" y="70" width="110" height="60" rx="30" class="d-sea"/><text x="69" y="98" text-anchor="middle" class="d-sea-t">Internet</text><text x="69" y="116" text-anchor="middle" class="d-lbl">HTTPS</text>
+        <path d="M124 100 H 176" class="d-line" marker-end="url(#ah)"/>
+        <rect x="182" y="52" width="170" height="96" rx="8" class="d-acc"/><text x="267" y="78" text-anchor="middle" class="d-acc-t">Ingress controller</text><text x="267" y="98" text-anchor="middle" class="d-lbl">news.example.com</text><text x="267" y="116" text-anchor="middle" class="d-lbl">TLS terminated here</text>
+        <path d="M352 80 C 390 60, 400 46, 438 46" class="d-line-acc" marker-end="url(#ah-acc)"/><text x="392" y="48" text-anchor="middle" class="d-lbl">/</text>
+        <path d="M352 120 C 390 140, 400 154, 438 154" class="d-line-acc" marker-end="url(#ah-acc)"/><text x="392" y="166" text-anchor="middle" class="d-lbl">/fortune</text>
+        <rect x="444" y="22" width="130" height="48" rx="8" class="d-box"/><text x="509" y="51" text-anchor="middle" class="d-tb">svc wordpress</text>
+        <rect x="444" y="130" width="130" height="48" rx="8" class="d-box"/><text x="509" y="159" text-anchor="middle" class="d-tb">svc fortune</text>
+        <rect x="600" y="16" width="44" height="26" rx="8" class="d-go"/><rect x="652" y="16" width="44" height="26" rx="8" class="d-go"/><rect x="600" y="50" width="44" height="26" rx="8" class="d-go"/>
+        <rect x="600" y="124" width="44" height="26" rx="8" class="d-go"/><rect x="652" y="124" width="44" height="26" rx="8" class="d-go"/>
+        <path d="M574 46 H 594" class="d-line"/><path d="M574 154 H 594" class="d-line"/>
+        <text x="648" y="96" text-anchor="middle" class="d-cap">pods</text>
+      </svg>
+      <figcaption>One public IP and one TLS certificate can serve many apps. Popular controllers include ingress-nginx, Traefik and the cloud providers' own.</figcaption>
+    </figure>
+    <div class="box tidbit"><span class="k">Tidbit</span><p>The newer <strong>Gateway API</strong> (<code>Gateway</code> + <code>HTTPRoute</code> objects) is the successor to Ingress: more expressive, with traffic splitting for canary releases and a cleaner split between platform and app teams. New clusters increasingly start with it, but you'll meet Ingress everywhere for years.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="config">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 23 · Kubernetes</span>
+    <h2>ConfigMaps &amp; Secrets</h2>
+    <p class="dek">Your <code>.env</code> file, promoted to a first-class, versioned cluster object.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>ConfigMap</h3><span class="chip lab">Lab 02 · 03 idea</span></div>
+    <p class="def">Non-secret key/value configuration that pods consume as environment variables or as mounted files.</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> ConfigMap
+<span class="k">metadata:</span> { name: wp-config }
+<span class="k">data:</span>
+  WORDPRESS_DB_HOST: mysql
+  WORDPRESS_DB_NAME: wp
+  uploads.ini: |                    <span class="c"># Lab 03's bind-mounted file, as a ConfigMap</span>
+    upload_max_filesize = 64M
+    post_max_size = 64M</code></pre>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Secret</h3></div>
+    <p class="def">Like a ConfigMap but for sensitive values; kept separate so access can be restricted and storage encrypted.</p>
+<pre><code>kubectl create secret generic wp-db \
+  --from-literal=WORDPRESS_DB_PASSWORD='wp-pass-123'
+
+<span class="c"># in the Deployment's container spec:</span>
+envFrom:
+  - configMapRef: { name: wp-config }
+  - secretRef:    { name: wp-db }</code></pre>
+    <div class="box trap"><span class="k">Trap</span><p><strong>Base64 is not encryption.</strong> Secret values in YAML are base64-<em>encoded</em>, so anyone who can read the object can decode them in one command. Real protection comes from RBAC (who may read Secrets), encryption at rest in etcd, and external secret managers (Vault, AWS Secrets Manager, …). And never commit Secret YAML with real values to Git.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="storage">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 24 · Kubernetes</span>
+    <h2>Storage &amp; StatefulSets</h2>
+    <p class="dek">Lab 03's named volume, rebuilt for a world where your pod might restart on a different machine.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>PersistentVolumeClaim (PVC)</h3><span class="chip lab">Lab 03 idea</span></div>
+    <p class="def">A pod's <em>request</em> for storage ("10 GiB, read-write") that Kubernetes satisfies with a PersistentVolume, often provisioned on demand by a StorageClass.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 720 150" role="img" aria-labelledby="pvc-t">
+        <title id="pvc-t">A MySQL pod mounts a PersistentVolumeClaim asking for 10 gibibytes; the claim is bound to a PersistentVolume created by a StorageClass, backed by a real cloud disk.</title>
+        <rect x="14" y="44" width="130" height="62" rx="12" class="d-go"/><text x="79" y="72" text-anchor="middle" class="d-go-t">pod: mysql-0</text><text x="79" y="91" text-anchor="middle" class="d-lbl">/var/lib/mysql</text>
+        <path d="M144 75 H 190" class="d-line" marker-end="url(#ah)"/>
+        <rect x="196" y="44" width="150" height="62" rx="8" class="d-acc"/><text x="271" y="72" text-anchor="middle" class="d-acc-t">PVC · db-data</text><text x="271" y="91" text-anchor="middle" class="d-lbl">"10Gi, RWO please"</text>
+        <path d="M346 75 H 392" class="d-line" marker-end="url(#ah)"/><text x="369" y="66" text-anchor="middle" class="d-lbl">bound</text>
+        <rect x="398" y="44" width="140" height="62" rx="8" class="d-sea"/><text x="468" y="72" text-anchor="middle" class="d-sea-t">PersistentVolume</text><text x="468" y="91" text-anchor="middle" class="d-lbl">10Gi</text>
+        <path d="M538 75 H 584" class="d-line" marker-end="url(#ah)"/>
+        <rect x="590" y="44" width="116" height="62" rx="8" class="d-soft"/><text x="648" y="72" text-anchor="middle" class="d-tb">cloud disk</text><text x="648" y="91" text-anchor="middle" class="d-lbl">EBS / PD / …</text>
+        <text x="398" y="130" class="d-cap">created on demand by a StorageClass</text>
+      </svg>
+      <figcaption>Pods ask for storage by claim, not by location, so the same YAML works on a laptop cluster and in any cloud.</figcaption>
+    </figure>
+    <div class="tbl"><table>
+      <thead><tr><th>Docker (Lab 03)</th><th>Kubernetes</th></tr></thead>
+      <tbody>
+        <tr><td>Named volume <code>db-data</code></td><td>PersistentVolumeClaim <code>db-data</code></td></tr>
+        <tr><td>Docker decides where it lives</td><td>A StorageClass provisions a PersistentVolume</td></tr>
+        <tr><td>Bind mount of <code>uploads.ini</code></td><td>ConfigMap mounted as a file</td></tr>
+        <tr><td><code>docker compose down -v</code> deletes it</td><td>Reclaim policy decides (<code>Delete</code> or <code>Retain</code>)</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>StatefulSet</h3></div>
+    <p class="def">Like a Deployment, but each replica gets a stable name (<code>mysql-0</code>, <code>mysql-1</code>), a stable network identity and its <em>own</em> persistent volume that follows it.</p>
+    <p>Use Deployments for stateless apps (WordPress, whoami, fortune) and StatefulSets for things like databases and message brokers that care which replica is which. Many teams sidestep this by using a managed database (RDS, Cloud SQL) and keeping the cluster stateless.</p>
+    <div class="box trap"><span class="k">Trap</span><p>Lab 04's warning comes back here: if two WordPress replicas each have their own volume, uploads made on one are missing on the other. In Kubernetes you'd use a <code>ReadWriteMany</code> volume or, better, object storage (S3, GCS) for media.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="probes">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 25 · Kubernetes</span>
+    <h2>Probes, limits &amp; namespaces</h2>
+    <p class="dek">Three things that turn "it runs in the cluster" into "it runs <em>well</em> in the cluster".</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Probes</h3><span class="chip lab">Lab 03 · 04 idea</span></div>
+    <p class="def">Kubernetes' healthchecks, in three flavours, each with a different consequence when it fails.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Probe</th><th>Question</th><th>On failure</th></tr></thead>
+      <tbody>
+        <tr><td><strong>startupProbe</strong></td><td>Has it finished booting?</td><td>Other probes wait; eventually restart</td></tr>
+        <tr><td><strong>readinessProbe</strong></td><td>Can it take traffic right now?</td><td>Removed from the Service (not restarted)</td></tr>
+        <tr><td><strong>livenessProbe</strong></td><td>Is it alive or stuck?</td><td>Container is <strong>restarted</strong></td></tr>
+      </tbody>
+    </table></div>
+<pre><code>readinessProbe:
+  httpGet: { path: /healthz, port: 8080 }   <span class="c"># whoami's endpoint from Lab 04</span>
+  periodSeconds: 5
+livenessProbe:
+  httpGet: { path: /healthz, port: 8080 }
+  initialDelaySeconds: 10</code></pre>
+    <div class="box trap"><span class="k">Trap</span><p>Don't make liveness depend on the database. If MySQL blips, every WordPress pod fails liveness and gets restarted at once, turning a 5-second hiccup into an outage. Liveness checks <em>this process</em>; readiness can check dependencies.</p></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Requests &amp; limits</h3></div>
+    <p class="def"><strong>Requests</strong> are what the scheduler reserves for a container; <strong>limits</strong> are the ceiling it may never cross.</p>
+<pre><code>resources:
+  requests: { cpu: 100m, memory: 128Mi }   <span class="c"># 0.1 CPU core guaranteed</span>
+  limits:   { memory: 256Mi }              <span class="c"># exceed → OOMKilled</span></code></pre>
+    <p>No requests means the scheduler packs blind; no memory limit means one leaky pod can starve its neighbours. It's the cluster version of <code>docker run --memory</code>.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Namespaces &amp; labels</h3></div>
+    <p class="def">Namespaces divide one cluster into virtual sub-clusters (per team or per environment); labels are key/value tags that selectors use to group anything.</p>
+    <p><code>kubectl get pods -n staging</code> looks in the <code>staging</code> namespace, like Lab 05's staging site, but with its own permissions, quotas and names. Labels like <code>app=whoami</code>, <code>tier=frontend</code> and <code>version=v2</code> are how Services find pods, Deployments own them and you filter them: <code>kubectl get pods -l app=whoami</code>.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="translate">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 26 · Kubernetes</span>
+    <h2>Compose → Kubernetes</h2>
+    <p class="dek">Everything you built in the labs has a Kubernetes counterpart. Here's the translation table.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>The Rosetta Stone</h3><span class="chip">Reference</span></div>
+    <div class="tbl"><table>
+      <thead><tr><th>You did this in Docker…</th><th>…Kubernetes calls it</th><th>Lab</th></tr></thead>
+      <tbody>
+        <tr><td>An image on Docker Hub</td><td>The same image, in <code>spec.containers[].image</code></td><td>01, 04</td></tr>
+        <tr><td>A container</td><td>A container inside a <strong>Pod</strong></td><td>01</td></tr>
+        <tr><td>A Compose <code>service</code> with <code>replicas: 3</code></td><td><strong>Deployment</strong> (+ ReplicaSet)</td><td>04, 05</td></tr>
+        <tr><td>Service name as DNS on a network</td><td><strong>Service</strong> (ClusterIP)</td><td>02, 05</td></tr>
+        <tr><td><code>-p 8080:80</code></td><td>Service type <code>NodePort</code> / <code>LoadBalancer</code>, or an <strong>Ingress</strong></td><td>01</td></tr>
+        <tr><td><code>-e</code> / <code>environment:</code></td><td><code>env:</code> / <strong>ConfigMap</strong></td><td>02</td></tr>
+        <tr><td><code>.env</code> with passwords</td><td><strong>Secret</strong></td><td>03</td></tr>
+        <tr><td>Named volume</td><td><strong>PersistentVolumeClaim</strong></td><td>03</td></tr>
+        <tr><td>Bind-mounted config file</td><td>ConfigMap mounted as a volume</td><td>03</td></tr>
+        <tr><td><code>healthcheck:</code></td><td><strong>readiness / liveness probes</strong></td><td>03, 04</td></tr>
+        <tr><td><code>depends_on: service_healthy</code></td><td>Readiness probes + retries (or init containers)</td><td>03</td></tr>
+        <tr><td><code>restart: unless-stopped</code></td><td>Built in: <code>restartPolicy: Always</code> + controllers</td><td>03</td></tr>
+        <tr><td>Running v1 and v2 side by side</td><td>Rolling update, or canary with two Deployments</td><td>04</td></tr>
+        <tr><td>Staging copy of the stack</td><td>A separate <strong>Namespace</strong></td><td>05</td></tr>
+        <tr><td><code>docker compose up -d</code></td><td><code>kubectl apply -f k8s/</code></td><td>03</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Side by side: whoami</h3></div>
+    <div class="vs">
+      <div><span class="lbl">compose.yaml</span>
+<pre><code>services:
+  whoami:
+    image: you/whoami:v2
+    environment:
+      MESSAGE: "Hello"
+    deploy:
+      replicas: 3
+    healthcheck:
+      test: ["CMD", "/whoami",
+             "-health"]
+    ports:
+      - "8090:8080"</code></pre></div>
+      <div><span class="lbl">whoami.k8s.yaml</span>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata: { name: whoami }
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: whoami }
+  template:
+    metadata:
+      labels: { app: whoami }
+    spec:
+      containers:
+        - name: app
+          image: you/whoami:v2
+          env:
+            - { name: MESSAGE, value: "Hello" }
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: whoami }
+spec:
+  type: NodePort
+  selector: { app: whoami }
+  ports:
+    - { port: 80, targetPort: 8080 }</code></pre></div>
+    </div>
+    <p>More YAML, yes, but every extra line buys something Compose can't do: scheduling across machines, self-healing, rolling updates and real load balancing. Tools like <strong>Kompose</strong> can generate a first draft from a Compose file.</p>
+    <div class="box try"><span class="k">Try it</span><p>Get a cluster on your laptop: enable <strong>Kubernetes in Docker Desktop</strong> (Settings → Kubernetes), or use <code>kind create cluster</code>, <code>minikube start</code> or <code>k3d cluster create</code>. Then <code>kubectl apply -f whoami.k8s.yaml</code> and <code>kubectl port-forward svc/whoami 8090:80</code>, and you're running Lab 04's image on Kubernetes.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<div class="divider" id="part-ref">
+  <span class="eyebrow">Reference</span>
+  <h2>Keep this handy</h2>
+  <p>Symptoms and fixes, the commands you'll type every day, and every term in the guide.</p>
+</div>
+
+<!-- ============================================================ -->
+<section class="part" id="trouble">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 27 · Reference</span>
+    <h2>Troubleshooting</h2>
+    <p class="dek">Symptom on the left, likely cause in the middle, first command to run on the right.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Docker</h3></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Symptom</th><th>Usual cause</th><th>First move</th></tr></thead>
+      <tbody>
+        <tr><td><em>Cannot connect to the Docker daemon</em></td><td>Docker Desktop isn't running</td><td>Start it; wait for the whale</td></tr>
+        <tr><td><em>port is already allocated</em></td><td>Host port in use</td><td><code>docker ps</code>; choose another host port</td></tr>
+        <tr><td><em>Error establishing a database connection</em></td><td>DB booting · wrong host · not on same network · wrong password</td><td>Wait 20 s, then <code>getent hosts db</code>, then <code>docker logs</code></td></tr>
+        <tr><td>Browser: connection refused</td><td>Missing or reversed <code>-p</code></td><td><code>docker ps</code>: check the <code>PORTS</code> column</td></tr>
+        <tr><td><em>Empty reply from server</em></td><td>App bound to <code>127.0.0.1</code></td><td>Bind <code>0.0.0.0</code></td></tr>
+        <tr><td><em>dependency failed to start … unhealthy</em></td><td>A healthcheck failing</td><td><code>docker inspect --format '{{json .State.Health}}'</code></td></tr>
+        <tr><td>Container exits immediately</td><td>Main process finished or crashed</td><td><code>docker logs &lt;name&gt;</code>; <code>docker ps -a</code> shows the exit code</td></tr>
+        <tr><td>Data gone after recreate</td><td>No volume, or volume at the wrong path</td><td><code>docker inspect</code> → <code>Mounts</code></td></tr>
+        <tr><td>Changed <code>.env</code> password, now can't connect</td><td>DB was initialised with the old one</td><td>Dev: <code>docker compose down -v</code></td></tr>
+        <tr><td><em>exec: "sh": executable file not found</em></td><td><code>scratch</code>/distroless image has no shell</td><td>That's by design; use logs or <code>docker debug</code></td></tr>
+        <tr><td>Exit code <code>137</code></td><td>Killed: out of memory, or <code>SIGKILL</code></td><td>Raise the memory limit; check for leaks</td></tr>
+        <tr><td>Build is slow every time</td><td>Cache busted early</td><td>Reorder: dependencies before code; add <code>.dockerignore</code></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Kubernetes</h3></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Pod status</th><th>Usual cause</th><th>First move</th></tr></thead>
+      <tbody>
+        <tr><td><code>Pending</code></td><td>No node has enough CPU/memory, or a PVC can't bind</td><td><code>kubectl describe pod</code> → Events</td></tr>
+        <tr><td><code>ImagePullBackOff</code></td><td>Typo in image name or tag, private registry without credentials</td><td><code>kubectl describe pod</code>; check the image name</td></tr>
+        <tr><td><code>CrashLoopBackOff</code></td><td>Container keeps exiting; K8s waits longer between each retry</td><td><code>kubectl logs &lt;pod&gt; --previous</code></td></tr>
+        <tr><td><code>OOMKilled</code></td><td>Exceeded memory limit</td><td>Raise <code>limits.memory</code> or fix the leak</td></tr>
+        <tr><td><code>Running</code> but <code>0/1 READY</code></td><td>Readiness probe failing</td><td><code>kubectl describe pod</code>; test the probe path</td></tr>
+        <tr><td>Service returns nothing</td><td>Selector doesn't match pod labels</td><td><code>kubectl get endpoints &lt;svc&gt;</code></td></tr>
+      </tbody>
+    </table></div>
+    <p class="rule-line">Logs, describe, events. In that order.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="crib">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 28 · Reference</span>
+    <h2>Crib sheet</h2>
+    <p class="dek">The commands from every lab, grouped by job. Click to copy.</p>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Images</h3></div>
+    <div class="cmd"><pre><code>docker pull wordpress:7.1-php8.3-apache    # download
+docker images                              # list local images
+docker build -t whoami:v1 ./whoami         # build from a Dockerfile
+docker build --build-arg VERSION=v2 -t whoami:v2 ./whoami
+docker history whoami:v1                   # show layers
+docker tag whoami:v1 you/whoami:v1         # add a name
+docker push you/whoami:v1                  # upload to a registry
+docker rmi whoami:v1                       # delete an image</code></pre></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Containers</h3></div>
+    <div class="cmd"><pre><code>docker run -d --name wp1 -p 8080:80 wordpress   # create + start
+docker ps            # running     ·  docker ps -a   # all
+docker logs -f wp1   # follow logs
+docker exec -it wp1 bash                         # shell inside
+docker stop wp1 && docker start wp1              # stop / start
+docker rm -f wp1                                 # force remove
+docker inspect wp1                               # everything, as JSON
+docker stats --no-stream                         # CPU / memory</code></pre></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Networks &amp; volumes</h3></div>
+    <div class="cmd"><pre><code>docker network create my-wp
+docker network ls
+docker network inspect my-wp
+docker volume create wp-db-data
+docker volume ls
+docker volume inspect wp-db-data
+docker system df                 # disk usage summary
+docker system prune              # remove unused stuff (asks first)</code></pre></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>Compose</h3></div>
+    <div class="cmd"><pre><code>docker compose up -d             # create/update everything
+docker compose up -d --build     # rebuild images first
+docker compose ps                # status of this project
+docker compose logs -f wordpress # follow one service
+docker compose exec db sh        # shell in a service
+docker compose config            # show resolved YAML
+docker compose up -d --scale whoami=3
+docker compose down              # remove (keep volumes)
+docker compose down -v           # remove + DELETE volumes</code></pre></div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-h"><h3>kubectl</h3></div>
+    <div class="cmd"><pre><code>kubectl get pods,svc,deploy               # what's there
+kubectl get pods -o wide -w               # with nodes; watch
+kubectl describe pod &lt;pod&gt;                # details + events
+kubectl logs &lt;pod&gt; [-f] [--previous]      # logs
+kubectl exec -it &lt;pod&gt; -- sh              # shell inside
+kubectl apply -f k8s/                     # declare desired state
+kubectl delete -f k8s/                    # remove it
+kubectl scale deploy/whoami --replicas=5
+kubectl set image deploy/whoami app=you/whoami:v3
+kubectl rollout status deploy/whoami
+kubectl rollout undo deploy/whoami        # roll back
+kubectl port-forward svc/whoami 8090:80   # reach it from laptop
+kubectl config get-contexts               # which cluster am I on?!</code></pre></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="part" id="glossary">
+  <div class="part-h">
+    <span class="eyebrow">Chapter 29 · Reference</span>
+    <h2>Glossary A–Z</h2>
+    <p class="dek">Every term in the guide, in one line. <span class="chip" style="background:var(--sea-soft);color:var(--sea-ink);border:0">Docker</span> <span class="chip" style="background:var(--accent-soft);color:var(--accent-ink);border:0">K8s</span></p>
+  </div>
+  <div class="gloss-tools">
+    <label for="gq" class="chip" style="border:0;padding:0">Filter</label>
+    <input id="gq" type="search" placeholder="Type a term, e.g. volume" autocomplete="off">
+    <output id="gcount" for="gq"></output>
+  </div>
+  <p id="gempty" class="gloss-empty" hidden>No matching terms.</p>
+  <dl class="gloss" id="gloss">
+    <dt>ARG<span class="tag d">Docker</span></dt><dd>Build-time variable in a Dockerfile, set with <code>--build-arg</code>. <a href="#env">→ env</a></dd>
+    <dt>Bind mount<span class="tag d">Docker</span></dt><dd>A host file or folder mounted into a container. <a href="#volumes">→ volumes</a></dd>
+    <dt>Build cache<span class="tag d">Docker</span></dt><dd>Reuse of unchanged layers between builds. <a href="#dockerfile">→ Dockerfiles</a></dd>
+    <dt>Build context<span class="tag d">Docker</span></dt><dd>The folder sent to the builder; what <code>COPY</code> can see. <a href="#dockerfile">→ Dockerfiles</a></dd>
+    <dt>cgroups</dt><dd>Linux feature limiting a process's CPU, memory and I/O. <a href="#vm">→ VMs</a></dd>
+    <dt>ClusterIP<span class="tag k">K8s</span></dt><dd>Default Service type, reachable only inside the cluster. <a href="#services">→ Services</a></dd>
+    <dt>CMD<span class="tag d">Docker</span></dt><dd>Default command a container runs; overridable. <a href="#dockerfile">→ Dockerfiles</a></dd>
+    <dt>ConfigMap<span class="tag k">K8s</span></dt><dd>Non-secret configuration consumed as env vars or files. <a href="#config">→ config</a></dd>
+    <dt>Container</dt><dd>A running (or stopped) instance of an image with its own writable layer and isolation. <a href="#images">→ images</a></dd>
+    <dt>containerd</dt><dd>The container runtime used by Docker and most Kubernetes nodes. <a href="#arch">→ cluster</a></dd>
+    <dt>Control plane<span class="tag k">K8s</span></dt><dd>API server, etcd, scheduler and controllers: the cluster's brain. <a href="#arch">→ cluster</a></dd>
+    <dt>Controller<span class="tag k">K8s</span></dt><dd>A loop that drives actual state toward desired state. <a href="#desired">→ desired state</a></dd>
+    <dt>CrashLoopBackOff<span class="tag k">K8s</span></dt><dd>A container keeps crashing; Kubernetes waits longer between restarts. <a href="#trouble">→ troubleshooting</a></dd>
+    <dt>depends_on<span class="tag d">Docker</span></dt><dd>Compose start ordering; with <code>service_healthy</code>, waits for a healthcheck. <a href="#health">→ health</a></dd>
+    <dt>Deployment<span class="tag k">K8s</span></dt><dd>Manages replicated, stateless pods and rolling updates. <a href="#deployments">→ Deployments</a></dd>
+    <dt>Desired state<span class="tag k">K8s</span></dt><dd>What you declared in YAML; the target controllers reconcile toward. <a href="#desired">→ desired state</a></dd>
+    <dt>Digest</dt><dd>Immutable content hash of an image (<code>@sha256:…</code>). <a href="#registry">→ registries</a></dd>
+    <dt>Docker Compose<span class="tag d">Docker</span></dt><dd>Tool that runs multi-container apps from <code>compose.yaml</code>. <a href="#compose">→ Compose</a></dd>
+    <dt>Docker Desktop<span class="tag d">Docker</span></dt><dd>Mac/Windows app bundling the engine, a Linux VM and optional Kubernetes. <a href="#vm">→ VMs</a></dd>
+    <dt>Docker Hub<span class="tag d">Docker</span></dt><dd>The default public registry, <code>docker.io</code>. <a href="#registry">→ registries</a></dd>
+    <dt>Dockerfile<span class="tag d">Docker</span></dt><dd>Recipe of instructions that builds an image. <a href="#dockerfile">→ Dockerfiles</a></dd>
+    <dt>.dockerignore<span class="tag d">Docker</span></dt><dd>Excludes files from the build context. <a href="#dockerfile">→ Dockerfiles</a></dd>
+    <dt>ENTRYPOINT<span class="tag d">Docker</span></dt><dd>The fixed executable of a container; run arguments are appended. <a href="#dockerfile">→ Dockerfiles</a></dd>
+    <dt>Environment variable</dt><dd>Key/value config passed into a container (<code>-e</code>, <code>environment:</code>, <code>env:</code>). <a href="#env">→ env</a></dd>
+    <dt>etcd<span class="tag k">K8s</span></dt><dd>Distributed key-value store holding all cluster state. <a href="#arch">→ cluster</a></dd>
+    <dt>Exec form</dt><dd><code>CMD ["a","b"]</code>: runs without a shell so the app gets signals. <a href="#dockerfile">→ Dockerfiles</a></dd>
+    <dt>Gateway API<span class="tag k">K8s</span></dt><dd>Successor to Ingress for richer HTTP routing. <a href="#ingress">→ Ingress</a></dd>
+    <dt>Healthcheck<span class="tag d">Docker</span></dt><dd>Periodic command deciding whether a container is healthy. <a href="#health">→ health</a></dd>
+    <dt>Image</dt><dd>Read-only, layered template for containers. <a href="#images">→ images</a></dd>
+    <dt>ImagePullBackOff<span class="tag k">K8s</span></dt><dd>Kubernetes can't pull the image; check the name, tag and credentials. <a href="#trouble">→ troubleshooting</a></dd>
+    <dt>Ingress<span class="tag k">K8s</span></dt><dd>HTTP routing rules from outside the cluster to Services. <a href="#ingress">→ Ingress</a></dd>
+    <dt>kubectl<span class="tag k">K8s</span></dt><dd>Command-line client for the Kubernetes API. <a href="#crib">→ crib sheet</a></dd>
+    <dt>kubelet<span class="tag k">K8s</span></dt><dd>Node agent that runs and watches pods. <a href="#arch">→ cluster</a></dd>
+    <dt>kube-proxy<span class="tag k">K8s</span></dt><dd>Programs node networking so Service IPs reach pods. <a href="#arch">→ cluster</a></dd>
+    <dt>Label / selector<span class="tag k">K8s</span></dt><dd>Key/value tags on objects, and queries that match them. <a href="#services">→ Services</a></dd>
+    <dt>latest</dt><dd>The default tag. A moving label, not a promise of newness or stability. <a href="#registry">→ registries</a></dd>
+    <dt>Layer</dt><dd>One filesystem diff in an image's stack. <a href="#images">→ images</a></dd>
+    <dt>LoadBalancer<span class="tag k">K8s</span></dt><dd>Service type that provisions an external cloud load balancer. <a href="#services">→ Services</a></dd>
+    <dt>Multi-stage build<span class="tag d">Docker</span></dt><dd>Dockerfile with several <code>FROM</code>s; only the final stage ships. <a href="#multistage">→ multi-stage</a></dd>
+    <dt>Namespace (Linux)</dt><dd>Kernel feature isolating what a process can see. <a href="#vm">→ VMs</a></dd>
+    <dt>Namespace<span class="tag k">K8s</span></dt><dd>Virtual sub-cluster for separating teams or environments. <a href="#probes">→ namespaces</a></dd>
+    <dt>Node<span class="tag k">K8s</span></dt><dd>A worker machine that runs pods. <a href="#arch">→ cluster</a></dd>
+    <dt>NodePort<span class="tag k">K8s</span></dt><dd>Service type exposing a port (30000–32767) on every node. <a href="#services">→ Services</a></dd>
+    <dt>OCI</dt><dd>Open Container Initiative: the open standard for image and runtime formats. <a href="#arch">→ cluster</a></dd>
+    <dt>Official Image<span class="tag d">Docker</span></dt><dd>Curated Docker Hub image under <code>library/</code> (<code>_</code> in URLs). <a href="#registry">→ registries</a></dd>
+    <dt>OOMKilled</dt><dd>Process killed for exceeding its memory limit (exit code 137). <a href="#trouble">→ troubleshooting</a></dd>
+    <dt>Orchestrator</dt><dd>Software that schedules, scales and heals containers across machines. <a href="#k8s-why">→ orchestration</a></dd>
+    <dt>PersistentVolume (PV)<span class="tag k">K8s</span></dt><dd>A piece of cluster storage. <a href="#storage">→ storage</a></dd>
+    <dt>PersistentVolumeClaim (PVC)<span class="tag k">K8s</span></dt><dd>A pod's request for storage, bound to a PV. <a href="#storage">→ storage</a></dd>
+    <dt>Pod<span class="tag k">K8s</span></dt><dd>Smallest deployable unit: one or more containers sharing network and volumes. <a href="#pods">→ Pods</a></dd>
+    <dt>Port mapping<span class="tag d">Docker</span></dt><dd><code>-p HOST:CONTAINER</code>, forwarding a host port into a container. <a href="#ports">→ ports</a></dd>
+    <dt>Probe<span class="tag k">K8s</span></dt><dd>Startup, readiness or liveness check on a container. <a href="#probes">→ probes</a></dd>
+    <dt>Registry</dt><dd>Server that stores and serves images. <a href="#registry">→ registries</a></dd>
+    <dt>Replica</dt><dd>One of several identical running copies of a service or pod. <a href="#deployments">→ Deployments</a></dd>
+    <dt>ReplicaSet<span class="tag k">K8s</span></dt><dd>Keeps a fixed number of identical pods running; owned by a Deployment. <a href="#deployments">→ Deployments</a></dd>
+    <dt>Requests / limits<span class="tag k">K8s</span></dt><dd>Reserved and maximum CPU/memory for a container. <a href="#probes">→ limits</a></dd>
+    <dt>Restart policy</dt><dd>When a stopped container is restarted automatically. <a href="#health">→ restarts</a></dd>
+    <dt>Rolling update<span class="tag k">K8s</span></dt><dd>Replacing pods gradually with a new version, with no downtime. <a href="#deployments">→ Deployments</a></dd>
+    <dt>Scheduler<span class="tag k">K8s</span></dt><dd>Chooses which node each new pod runs on. <a href="#arch">→ cluster</a></dd>
+    <dt>scratch<span class="tag d">Docker</span></dt><dd>The empty base image. <a href="#multistage">→ multi-stage</a></dd>
+    <dt>Secret<span class="tag k">K8s</span></dt><dd>Object for sensitive values; base64-encoded, not encrypted by default. <a href="#config">→ Secrets</a></dd>
+    <dt>Service<span class="tag k">K8s</span></dt><dd>Stable IP and DNS name load-balancing across matching ready pods. <a href="#services">→ Services</a></dd>
+    <dt>Sidecar<span class="tag k">K8s</span></dt><dd>Helper container in the same pod as the main app. <a href="#pods">→ Pods</a></dd>
+    <dt>StatefulSet<span class="tag k">K8s</span></dt><dd>Like a Deployment, but with stable identities and per-replica storage. <a href="#storage">→ StatefulSets</a></dd>
+    <dt>StorageClass<span class="tag k">K8s</span></dt><dd>Recipe for dynamically provisioning PersistentVolumes. <a href="#storage">→ storage</a></dd>
+    <dt>Tag</dt><dd>Human-readable, movable label for an image version (<code>:7.1</code>). <a href="#registry">→ registries</a></dd>
+    <dt>User-defined network<span class="tag d">Docker</span></dt><dd>A network you create, with built-in DNS by container name. <a href="#networks">→ networks</a></dd>
+    <dt>Volume (named)<span class="tag d">Docker</span></dt><dd>Docker-managed storage that outlives containers. <a href="#volumes">→ volumes</a></dd>
+    <dt>Writable layer<span class="tag d">Docker</span></dt><dd>A container's private top layer; deleted with the container. <a href="#volumes">→ volumes</a></dd>
+  </dl>
+</section>
+
+<footer class="foot">
+  <p><strong>Container Field Guide</strong>, a companion to the <a href="https://github.com/varoonsahgal/docker-k8s-labs">Docker &amp; Kubernetes labs</a>. Versions and sizes were measured with Docker 27.4 on linux/arm64 in October 2026; your numbers may differ slightly.</p>
+  <p>Photos via Wikimedia Commons: Eimskip container terminal by Quintin Soloviev (CC BY 4.0); CMA CGM Seine by Arizonaman1 (CC0). WordPress screenshots were captured from the lab containers. Diagrams are original. Docker and Kubernetes are trademarks of their respective owners; this guide is an independent teaching resource.</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+(function () {
+  // Theme toggle (remembered per browser)
+  var root = document.documentElement;
+  document.getElementById('theme').addEventListener('click', function () {
+    var dark = root.getAttribute('data-theme') === 'dark' ||
+      (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var next = dark ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('fg-theme', next); } catch (e) {}
+  });
+
+  // Glossary filter
+  var q = document.getElementById('gq');
+  var list = document.getElementById('gloss');
+  var count = document.getElementById('gcount');
+  var empty = document.getElementById('gempty');
+  var dts = Array.prototype.slice.call(list.querySelectorAll('dt'));
+  function filter() {
+    var term = q.value.trim().toLowerCase();
+    var shown = 0;
+    dts.forEach(function (dt) {
+      var dd = dt.nextElementSibling;
+      var hit = !term || dt.textContent.toLowerCase().indexOf(term) !== -1 || dd.textContent.toLowerCase().indexOf(term) !== -1;
+      dt.hidden = !hit; dd.hidden = !hit;
+      if (hit) shown++;
+    });
+    count.textContent = shown + ' of ' + dts.length + ' terms';
+    empty.hidden = shown !== 0;
+  }
+  q.addEventListener('input', filter);
+  filter();
+
+  // Copy buttons on command blocks
+  document.querySelectorAll('.cmd').forEach(function (box) {
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'copy'; btn.textContent = 'Copy';
+    btn.addEventListener('click', function () {
+      var text = box.querySelector('code').textContent;
+      function done(label) { btn.textContent = label; setTimeout(function () { btn.textContent = 'Copy'; }, 1600); }
+      function fallback() {
+        var r = document.createRange(); r.selectNodeContents(box.querySelector('code'));
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done('Press ⌘C');
+      }
+      try { navigator.clipboard.writeText(text).then(function () { done('Copied'); }, fallback); } catch (e) { fallback(); }
+    });
+    box.appendChild(btn);
+  });
+
+  // Collapse the chapter index on narrow screens
+  var toc = document.getElementById('toc');
+  var mq = window.matchMedia('(max-width: 980px)');
+  function syncToc() { if (mq.matches) toc.removeAttribute('open'); else toc.setAttribute('open', ''); }
+  syncToc();
+  if (mq.addEventListener) mq.addEventListener('change', syncToc);
+  toc.querySelector('summary').addEventListener('click', function (e) { if (!mq.matches) e.preventDefault(); });
+  toc.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { if (mq.matches) toc.removeAttribute('open'); }); });
+
+  // Highlight the current chapter
+  var links = {};
+  toc.querySelectorAll('a').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+  if ('IntersectionObserver' in window) {
+    var current = null;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting && links[en.target.id]) {
+          if (current) current.classList.remove('on');
+          current = links[en.target.id];
+          current.classList.add('on');
+        }
+      });
+    }, { rootMargin: '-15% 0px -75% 0px' });
+    document.querySelectorAll('section.part').forEach(function (s) { io.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>
